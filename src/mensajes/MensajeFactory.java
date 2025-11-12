@@ -2,9 +2,21 @@ package mensajes;
 
 public class MensajeFactory {
 
-    // clase con un metodo que recibe un tipo de mensaje y devuelve un objeto Mensjae de ese tipo
-
-    /*public Mensaje crearMensaje(TipoMsg tipomsg){
-        //switch crear mensajes
-    }*/
+    public static Mensaje crearMensaje(TipoMsg tipoMsg) {
+        switch (tipoMsg) {
+            case ASIGNAR_GRUPO:
+                return new AsignarGrupo();
+            case ERROR:
+                return new Error();
+            case EVENTO_CARRERA:
+                return new EventoCarrera();
+            case FIN_CARRERA:
+                return new FinCarrera();
+            case SOLICITAR_JUGAR:
+                return new SolicitarJugar();
+            default:
+                throw new IllegalArgumentException("Tipo de mensaje desconocido: " + tipoMsg);
+        }
+    }
 }
+
