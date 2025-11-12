@@ -1,6 +1,6 @@
 package carreraCamellos;
 
-public class Servidor implements Runnable{
+public class Servidor{
 
     /* Servidor multihilo
     * Funciones:
@@ -13,8 +13,5 @@ public class Servidor implements Runnable{
     * 7. Crear ranking y mostrarlo en pantalla
     * 8. Si recibe un mensaje de error ?
     * */
-    @Override
-    public void run() {
 
-    }
 }
