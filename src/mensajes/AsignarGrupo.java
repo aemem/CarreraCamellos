@@ -6,31 +6,17 @@ package mensajes;
  */
 public class AsignarGrupo extends Mensaje {
 
-    public int idGrupo;
-    public String ipMulticast;
+    public TipoEvento tipoEvento;
 
     public AsignarGrupo() {
         this.tipoMsg = TipoMsg.ASIGNAR_GRUPO;
     }
 
-    public AsignarGrupo(int idGrupo, String ipMulticast) {
-        this.idGrupo = idGrupo;
-        this.ipMulticast = ipMulticast;
+    public TipoEvento getTipoEvento() {
+        return tipoEvento;
     }
 
-    public int getIdGrupo() {
-        return idGrupo;
-    }
-
-    public String getIpMulticast() {
-        return ipMulticast;
-    }
-
-    @Override
-    public String toString() {
-        return "AsignarGrupo{" +
-                "idGrupo=" + idGrupo +
-                ", ipMulticast='" + ipMulticast + '\'' +
-                '}';
+    public void setTipoEvento(TipoEvento tipoEvento) {
+        this.tipoEvento = tipoEvento;
     }
 }

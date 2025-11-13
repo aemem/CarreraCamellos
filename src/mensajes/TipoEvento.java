@@ -4,5 +4,6 @@ public enum TipoEvento {
     SALIDA,
     PASO,
     CAIDA,
-    META
+    META,
+    FIN
 }
