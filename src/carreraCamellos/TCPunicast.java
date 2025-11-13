@@ -1,6 +1,14 @@
 package carreraCamellos;
 
+import mensajes.*;
+
 public class TCPunicast{
 
-    // metodos para la comunicacion TCP unicast entre el servidor y UN camello
+    public void enviar(Mensaje msg){
+
+    }
+
+    public Mensaje recibir(){
+        
+    }
 }

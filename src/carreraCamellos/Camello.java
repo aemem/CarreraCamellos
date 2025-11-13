@@ -1,5 +1,7 @@
 package carreraCamellos;
 
+import mensajes.Mensaje;
+
 public class Camello {
 
     // Cliente. Cada camello tiene una carrera en la que participa.

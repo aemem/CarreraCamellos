@@ -1,5 +1,19 @@
 package carreraCamellos;
 
-public class UDPmulticast{
-    // metodos para la comunicacion entre el servidor y TODOS los camellos
+
+
+import mensajes.*;
+
+import java.net.InetAddress;
+
+public class UDPmulticast {
+
+    public void enviar(Mensaje msg){
+
+    }
+
+    public Mensaje recibir(){
+        EventoCarrera msg = new EventoCarrera();
+        return msg;
+    }
 }
