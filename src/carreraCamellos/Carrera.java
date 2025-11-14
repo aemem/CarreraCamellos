@@ -2,106 +2,100 @@ package carreraCamellos;
 
 import javax.swing.*;
 import java.awt.*;
-import java.awt.event.ActionEvent;
-import java.awt.event.ActionListener;
-import java.util.ArrayList;
+import java.awt.event.*;
+import java.util.*;
 
-public class Carrera extends JFrame {
-
-    private boolean carreraTerminada =false;
-
-    private static int number=4; //número de camellos //maximo 8 para que no se vea mal
-
-    private static final java.awt.Color COLORS[]= {Color.GREEN, Color.RED, Color.YELLOW,
-            Color.CYAN, Color.BLUE, Color.MAGENTA,
-            Color.ORANGE, Color.PINK};
-    private static final int H_SIZE=800;
-    private static final int LINE_V_GAP=20;
-    private static final int LINE_H_SIZE=H_SIZE;
-    private static final int LINE_V_SIZE=60;
-    private static final int MESSAGE_V_SIZE=25;
-    private static final int BUTTON_V_SIZE=25;
-    private static final int BUTTON_H_SIZE=80;
-    private static final int FINISH_LINE_X=600;
-    private static final int V_SIZE=number*(LINE_V_GAP+LINE_V_SIZE)+LINE_V_SIZE+MESSAGE_V_SIZE+BUTTON_V_SIZE;
-    private final static ImageIcon camelIcon = new ImageIcon("./src/camellos/camel.png");
-
-    private JPanel bgPanel;
+public class Carrera extends JFrame implements Runnable {
+    private boolean carreraTerminada = false;
+    private static final int number = 4; // número de camellos
+    private static final Color COLORS[] = {Color.GREEN, Color.RED, Color.YELLOW, Color.CYAN};
+    private static final int FINISH_LINE_X = 600;
+    private ArrayList<Camello> camellos;
+    private ArrayList<JLabel> camelLabels;
     private JButton buttonRun;
-    private JPanel finishLine;
+    private JPanel bgPanel;
+    private JLabel labelWinner;
 
     public Carrera() {
+        camellos = new ArrayList<>();
+        camelLabels = new ArrayList<>();
         createUIComponents();
+        // Inicializa camellos y gráfico de cada uno
+        for (int i = 0; i < number; i++) {
+            Camello c = new Camello("Camello " + (i + 1), COLORS[i]); //por si se quiere añadir constructor en la clase camello , color de camello o linea
+            camellos.add(c);
+            JLabel lbl = new JLabel("🐫", SwingConstants.CENTER);
+            lbl.setForeground(c.getColor()); // metodo de la clase camello
+            lbl.setBounds(0, 70 + i * 80, 40, 40);
+            bgPanel.add(lbl);
+            camelLabels.add(lbl);
+        }
+
         buttonRun.addActionListener(new ActionListener() {
             @Override
             public void actionPerformed(ActionEvent e) {
-                /*for(Calle calle : calles){
-                    calle.reset();
-
-                }*/
-                setCarreraTerminada(false);
-                //ejemplo de como usar el movimiento...
-
-
+                carreraTerminada = false;
+                labelWinner.setText("");
+                // Lanzamos el hilo de carrera
+                new Thread(Carrera.this).start();
             }
         });
     }
 
-
-    public static void main(String args[]){
-        java.awt.EventQueue.invokeLater(new Runnable() {
-            public void run() {
-
+    @Override
+    public void run() {
+        while (!carreraTerminada) {
+            for (int i = 0; i < camellos.size(); i++) {
+                Camello c = camellos.get(i);
+                if (!c.isHaLlegado()) { //depende del atributo que se declare en la clase camello
+                    c.avanzar(); // metodo que deberia integrar la clase camello
+                    camelLabels.get(i).setBounds(c.getPosicion(), 70 + i * 80, 40, 40); // posicion de la clase camello
+                    if (c.isHaLlegado()) { // atributo de la clase camello
+                        carreraTerminada = true;
+                        labelWinner.setText("El Ganador es: " + c.getNombre()); // de la clase camello
+                        break;
+                    }
+                }
             }
-        });
-    }
-
-    public boolean isCarreraTerminada () {
-        return carreraTerminada;
-    }
-
-    public void setCarreraTerminada(boolean carreraTerminada) {
-        this.carreraTerminada=carreraTerminada;
+            try {
+                Thread.sleep(200);
+            } catch (InterruptedException ex) {
+                Thread.currentThread().interrupt();
+            }
+        }
     }
 
     private void createUIComponents() {
-        // TODO: place custom component creation code here
-        bgPanel= new JPanel(null);//null=absoluteLayout,usar coordenadas con pixeles
+        bgPanel = new JPanel(null);
         setContentPane(bgPanel);
         setTitle("Carrera de Camellos");
-        setSize(H_SIZE, V_SIZE);
+        setSize(800, 450);
         setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
         setResizable(false);
 
-        /* lo necesitamos para establecer la distancia de la calles */
-        int CALLE_INIT_X=0;
-        int CALLE_INIT_Y=0;
-        int CALLE_END_X=0;
-        int CALLE_END_Y=0;
-        int WINNER_Y=0;
-
-        finishLine= new JPanel();
-        finishLine.setLayout(null);
+        JPanel finishLine = new JPanel();
         finishLine.setBackground(Color.BLACK);
-        finishLine.setBounds(FINISH_LINE_X,LINE_V_GAP,5,CALLE_INIT_Y+LINE_V_SIZE-LINE_V_GAP);
+        finishLine.setBounds(FINISH_LINE_X, 70, 5, 330);
         bgPanel.add(finishLine);
-        bgPanel.setComponentZOrder(finishLine, 0);
 
         buttonRun = new JButton("Run");
+        buttonRun.setBounds(350, 400, 80, 30);
+        bgPanel.add(buttonRun);
 
-        JLabel labelWinner = new JLabel();
-        labelWinner.setText("El Ganador es el Jugador: Rojo");
+        labelWinner = new JLabel("");
         labelWinner.setFont(new Font("Arial", Font.BOLD, 20));
         labelWinner.setForeground(Color.BLACK);
         labelWinner.setHorizontalAlignment(JLabel.CENTER);
-        WINNER_Y=(number*(LINE_V_SIZE+LINE_V_GAP));
-        labelWinner.setBounds(0, WINNER_Y,H_SIZE,MESSAGE_V_SIZE);
-        labelWinner.setVisible(true);
+        labelWinner.setBounds(0, 20, 800, 30);
         bgPanel.add(labelWinner);
-        int BUTTON_Y=WINNER_Y+LINE_V_GAP + MESSAGE_V_SIZE;
-        buttonRun.setBounds((H_SIZE-BUTTON_H_SIZE)/2, BUTTON_Y,BUTTON_H_SIZE,BUTTON_V_SIZE);
-        buttonRun.setText("Run");
-        buttonRun.setVisible(true);
-        bgPanel.add(buttonRun);
+    }
+
+    public static void main(String args[]) {
+        EventQueue.invokeLater(new Runnable() {
+            public void run() {
+                Carrera frame = new Carrera();
+                frame.setVisible(true);
+            }
+        });
     }
 }
