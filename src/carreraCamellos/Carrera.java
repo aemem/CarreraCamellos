@@ -7,7 +7,7 @@ import java.util.*;
 
 public class Carrera extends JFrame implements Runnable {
     private boolean carreraTerminada = false;
-    private static final int number = 4; // número de camellos
+    private static final int numCamellos = 4; // número de camellos
     private static final Color COLORS[] = {Color.GREEN, Color.RED, Color.YELLOW, Color.CYAN};
     private static final int FINISH_LINE_X = 600;
     private ArrayList<Camello> camellos;
@@ -21,11 +21,10 @@ public class Carrera extends JFrame implements Runnable {
         camelLabels = new ArrayList<>();
         createUIComponents();
         // Inicializa camellos y gráfico de cada uno
-        for (int i = 0; i < number; i++) {
-            Camello c = new Camello("Camello " + (i + 1), COLORS[i]); //por si se quiere añadir constructor en la clase camello , color de camello o linea
-            camellos.add(c);
+        for (int i = 0; i < numCamellos; i++) {
             JLabel lbl = new JLabel("🐫", SwingConstants.CENTER);
-            lbl.setForeground(c.getColor()); // metodo de la clase camello
+            int c = (int)( Math.random() * 3); // cada vez que te crea un carril te crea un color
+            lbl.setForeground(COLORS[c]);
             lbl.setBounds(0, 70 + i * 80, 40, 40);
             bgPanel.add(lbl);
             camelLabels.add(lbl);
@@ -35,9 +34,9 @@ public class Carrera extends JFrame implements Runnable {
             @Override
             public void actionPerformed(ActionEvent e) {
                 carreraTerminada = false;
-                labelWinner.setText("");
+
                 // Lanzamos el hilo de carrera
-                new Thread(Carrera.this).start();
+                new Thread(Carrera.this).start(); //Empieza la carrera
             }
         });
     }
