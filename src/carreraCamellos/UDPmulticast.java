@@ -19,7 +19,6 @@ public class UDPmulticast{
     public UDPmulticast(InetAddress ipMulticast, int puerto) throws IOException {
         this.ipMulticast = ipMulticast;
         this.puerto = puerto;
-        socket.joinGroup(ipMulticast);   // MUY IMPORTANTE
     }
 
     public void enviar(EventoCarrera evento) throws IOException {
@@ -46,14 +45,12 @@ public class UDPmulticast{
 
     public EventoCarrera recibir() throws IOException, ClassNotFoundException {
 
-        // 1. Preparar buffer para recibir datagrama
+
         byte[] recibidos = new byte[2048];
         DatagramPacket paquete = new DatagramPacket(recibidos, recibidos.length);
 
-        // 2. Recibir paquete multicast
         socket.receive(paquete);
 
-        // 3. Convertir bytes → objeto EventoCarrera
         ByteArrayInputStream bais = new ByteArrayInputStream(recibidos);
         ObjectInputStream ois = new ObjectInputStream(bais);
 
