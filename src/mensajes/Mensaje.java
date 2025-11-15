@@ -10,4 +10,8 @@ public abstract class Mensaje implements Serializable {
     public TipoMsg getTipoMsg(){
         return tipoMsg;
     }
+
+    public void setTipoMsg(TipoMsg tipoMsg){
+        this.tipoMsg = tipoMsg;
+    }
 }
