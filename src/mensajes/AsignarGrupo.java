@@ -6,17 +6,19 @@ package mensajes;
  */
 public class AsignarGrupo extends Mensaje {
 
-    public TipoEvento tipoEvento;
+    public int idCarrera;
 
-    public AsignarGrupo() {
+    public AsignarGrupo(int idCarrera) {
         this.tipoMsg = TipoMsg.ASIGNAR_GRUPO;
+        this.idCarrera = idCarrera;
     }
 
-    public TipoEvento getTipoEvento() {
-        return tipoEvento;
+    public int getIdCarrera() {
+        return idCarrera;
     }
 
-    public void setTipoEvento(TipoEvento tipoEvento) {
-        this.tipoEvento = tipoEvento;
+    public void setIdCarrera(int idCarrera) {
+        this.idCarrera = idCarrera;
     }
+
 }

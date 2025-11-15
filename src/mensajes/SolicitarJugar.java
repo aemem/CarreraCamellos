@@ -3,17 +3,19 @@ package mensajes;
 public class SolicitarJugar extends Mensaje{
     // mensaje que envian los Camellos al Servidor para decir que quieren unirse a una carrera
 
-    public TipoEvento tipoEvento;
+    public int idCamello;
 
-    public SolicitarJugar(){
+    public SolicitarJugar(int idCamello) {
         this.tipoMsg = tipoMsg.SOLICITAR_JUGAR;
+        this.idCamello = idCamello;
     }
 
-    public TipoEvento getTipoEvento() {
-        return tipoEvento;
+    public int getIdCamello() {
+        return idCamello;
     }
 
-    public void setTipoEvento(TipoEvento tipoEvento) {
-        this.tipoEvento = tipoEvento;
+    public void setIdCamello(int idCamello) {
+        this.idCamello = idCamello;
     }
+
 }

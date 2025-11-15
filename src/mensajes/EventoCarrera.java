@@ -7,11 +7,17 @@ public class EventoCarrera extends Mensaje {
 
     public TipoEvento tipoEvento;
 
-    public EventoCarrera(){
+    public EventoCarrera(TipoEvento tipoEvento) {
         this.tipoMsg = tipoMsg.EVENTO_CARRERA;
+        this.tipoEvento = tipoEvento;
     }
 
     public TipoEvento getTipoEvento() {
         return tipoEvento;
     }
+
+    public void setTipoEvento(TipoEvento tipoEvento) {
+        this.tipoEvento = tipoEvento;
+    }
+
 }
