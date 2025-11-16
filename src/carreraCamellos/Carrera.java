@@ -5,50 +5,35 @@ import java.awt.*;
 import java.awt.event.*;
 import java.util.List;
 import java.util.ArrayList;
+import java.net.InetAddress; // Import necesario para InetAddress
 
-/**
- * Clase Carrera: representa una carrera de camellos.
- * Cada objeto Carrera es un hilo independiente (implementa Runnable).
- * Tiene un ID único y una lista de camellos (clientes).
- */
 public class Carrera extends JFrame implements Runnable {
-    // Control de terminación de carrera
-    private boolean carreraTerminada = false;
-
-    // Número total de camellos en la carrera (puede cambiar en nuevas carreras)
+    private boolean carreraTerminada;
     private static final int numCamellos = 4;
-
-    // Colores usados para camellos
     private static final Color COLORS[] = {Color.GREEN, Color.RED, Color.YELLOW, Color.CYAN};
-
-    // Posición X de la línea de meta
     private static final int FINISH_LINE_X = 600;
-
-    // ID de la carrera, suma +1 por cada carrera creada
-    private static int contadorCarreras = 1;     // variable estática para autoincremento
-    private int idCarrera;                       // id único de esta carrera
-
-    // Lista de camellos que compiten en esta carrera (es una List, no ArrayList)
+    private static int contadorCarreras = 1;
+    private int idCarrera;
     private List<Camello> camellos;
     private ArrayList<JLabel> camelLabels;
-
-    // Elementos visuales (Swing)
     private JButton buttonRun;
     private JPanel bgPanel;
     private JLabel labelWinner;
     private JLabel statusBar;
 
-    /**
-     * Constructor de Carrera: recibe la lista de camellos para esta carrera.
-     * Asigna un id único.
-     */
-    public Carrera(List<Camello> camellos) {
-        this.camellos = camellos;               // Recibe la lista por parámetro
-        this.idCarrera = contadorCarreras++;    // Asigna id y lo incrementa estáticamente
+    // NUEVOS ATRIBUTOS PARA MULTICAST
+    private InetAddress ipGrupo; // dirección multicast del grupo
+    private int puerto;          // puerto multicast que va a usar la carrera
+
+    // Constructor que recibe la Lista<Camello>, dirección multicast y puerto
+    public Carrera(List<Camello> camellos, InetAddress ipGrupo, int puerto) {
+        this.camellos = camellos;
+        this.ipGrupo = ipGrupo;
+        this.puerto = puerto;
+        this.idCarrera = contadorCarreras++;
         camelLabels = new ArrayList<>();
         crearInterfaceUI();
 
-        // Inicializa las etiquetas visuales de cada camello
         for (int i = 0; i < camellos.size(); i++) {
             Camello camello = camellos.get(i);
 
@@ -68,28 +53,27 @@ public class Carrera extends JFrame implements Runnable {
 
         buttonRun.addActionListener(e -> {
             resetCarrera();
-            carreraTerminada = false;
             buttonRun.setEnabled(false);
-            statusBar.setText("¡Carrera en marcha! [ID Carrera: " + idCarrera + "]");
             labelWinner.setText("");
-            new Thread(Carrera.this).start();
+            statusBar.setText("¡Carrera en marcha! [ID Carrera: " + idCarrera +
+                    ", IP: " + ipGrupo.getHostAddress() +
+                    ", Puerto: " + puerto + "]");
+            new Thread(this).start();
         });
 
         bgPanel.repaint();
     }
 
-    /**
-     * run() - Lógica principal de la carrera (hilo independiente).
-     * Avanza los camellos en pasos aleatorios de 1 a 3 hasta que uno llegue a la meta.
-     */
     @Override
     public void run() {
+        carreraTerminada = false;
+
         while (!carreraTerminada) {
             for (int i = 0; i < camellos.size(); i++) {
                 Camello c = camellos.get(i);
                 if (!c.isHaLlegado()) {
-                    int pasos = generarPasoAleatorio(); // Nuevo método para avanzar
-                    c.avanzar(pasos);                  // Debe recibir pasos en la clase Camello
+                    int pasos = generarPasoAleatorio();
+                    c.avanzar(pasos);
                     camelLabels.get(i).setBounds(105 + c.getPosicion(), 70 + i * 80, 40, 40);
                     if (c.isHaLlegado()) {
                         carreraTerminada = true;
@@ -98,22 +82,18 @@ public class Carrera extends JFrame implements Runnable {
                     }
                 }
             }
-            try {
-                Thread.sleep(70);
-            } catch (InterruptedException ex) {
-                Thread.currentThread().interrupt();
-            }
+            try { Thread.sleep(70); }
+            catch (InterruptedException ex) { Thread.currentThread().interrupt(); }
         }
         buttonRun.setEnabled(true);
         buttonRun.setText("Nueva carrera");
-        statusBar.setText("Carrera finalizada [ID: " + idCarrera + "] Pulsa para nueva partida.");
+        statusBar.setText("Carrera finalizada [ID: " + idCarrera +
+                ", IP: " + ipGrupo.getHostAddress() +
+                ", Puerto: " + puerto + "] Pulsa para nueva partida.");
     }
 
-    /**
-     * Método para obtener pasos aleatorios (1 a 3)
-     */
     private int generarPasoAleatorio() {
-        return (int) (Math.random() * 3) + 1;
+        return (int) (Math.random() * 3) + 1; // Devuelve 1, 2 o 3
     }
 
     private void mostrarGanador(String nombre, int idx) {
@@ -121,12 +101,12 @@ public class Carrera extends JFrame implements Runnable {
         labelWinner.setForeground(new Color(90, 30, 180));
         labelWinner.setFont(new Font("Arial", Font.BOLD, 26));
         camelLabels.get(idx).setFont(new Font("Dialog", Font.BOLD, 42));
-        statusBar.setText("Ganador: " + nombre + " [ID Carrera: " + idCarrera + "]");
+        statusBar.setText("Ganador: " + nombre +
+                " [ID Carrera: " + idCarrera +
+                ", IP: " + ipGrupo.getHostAddress() +
+                ", Puerto: " + puerto + "]");
     }
 
-    /**
-     * Reinicia la carrera a la posición inicial.
-     */
     private void resetCarrera() {
         for (int i = 0; i < camellos.size(); i++) {
             camellos.get(i).reset();
@@ -185,15 +165,21 @@ public class Carrera extends JFrame implements Runnable {
     }
 
     public static void main(String[] args) {
-        // Ejemplo de uso: crea lista y lanza carrera
-        List<Camello> miListaCamellos = new ArrayList<>();
-        for (int i = 0; i < numCamellos; i++) {
-            miListaCamellos.add(new Camello("Camello " + (i + 1)));
+        try {
+            List<Camello> miListaCamellos = new ArrayList<>();
+            for (int i = 0; i < numCamellos; i++) {
+                miListaCamellos.add(new Camello("Camello " + (i + 1)));
+            }
+            InetAddress ipGrupo = InetAddress.getByName("224.0.0.1"); // Ejemplo dirección multicast válida
+            int puerto = 5000; // Ejemplo puerto
+
+            EventQueue.invokeLater(() -> {
+                Carrera frame = new Carrera(miListaCamellos, ipGrupo, puerto);
+                frame.pack();
+                frame.setVisible(true);
+            });
+        } catch (Exception e) {
+            e.printStackTrace();
         }
-        EventQueue.invokeLater(() -> {
-            Carrera frame = new Carrera(miListaCamellos);
-            frame.pack();
-            frame.setVisible(true);
-        });
     }
 }
