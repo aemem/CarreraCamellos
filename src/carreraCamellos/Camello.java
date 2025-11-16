@@ -2,13 +2,14 @@ package carreraCamellos;
 
 import mensajes.AsignarGrupo;
 import mensajes.EventoCarrera;
-import mensajes.Mensaje;
 import mensajes.SolicitarJugar;
 
 import java.io.IOException;
 import java.net.InetAddress;
 import java.net.MulticastSocket;
 import java.net.Socket;
+
+import static mensajes.TipoEvento.*;
 
 public class Camello {
 
@@ -24,6 +25,10 @@ public class Camello {
 
     public Camello(int idCamello) throws IOException {
         Socket socket = new Socket(host, PUERTO_TCP);
+    }
+
+    public int getIdCamello() {
+        return idCamello;
     }
 
     TCPunicast tcp = new TCPunicast(socket);
@@ -49,14 +54,18 @@ public class Camello {
         }
     }
 
-    public void gestionCarrera(){
-//        UDPmulticast udp = new UDPmulticast();
-//        while (posicion < meta){
-//            int pasos = generarPasos();
-//            EventoCarrera evPasos = new EventoCarrera(PASO, pasos, idCamello);
-//            udp.enviar(evPasos);
-//        }
-//        EventoCarrera evMeta = new EventoCarrera(META, idCamello);
-//        udp.enviar(evMeta);
+    public void gestionCarrera(Carrera carrera) throws IOException {
+        UDPmulticast udp = new UDPmulticast(carrera.getIpGrupo(), carrera.getPuerto());
+        while (posicion < meta){
+            int pasos = generarPasos();
+            EventoCarrera evPasos = new EventoCarrera(PASO, pasos, idCamello);
+            udp.enviar(evPasos);
+        }
+        EventoCarrera evMeta = new EventoCarrera(META, idCamello);
+        udp.enviar(evMeta);
+    }
+
+    public static void main(String[] args){
+        
     }
 }
