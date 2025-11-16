@@ -11,7 +11,7 @@ public class Carrera extends JFrame implements Runnable {
     private boolean carreraTerminada;
     private static final int numCamellos = 4;
     private static final Color COLORS[] = {Color.GREEN, Color.RED, Color.YELLOW, Color.CYAN};
-    private static final int FINISH_LINE_X = 600;
+    public static final int FINISH_LINE_X = 600;
     private static int contadorCarreras = 1;
     private int idCarrera;
     private List<Camello> camellos;
@@ -69,17 +69,7 @@ public class Carrera extends JFrame implements Runnable {
         carreraTerminada = false;
 
         while (!carreraTerminada) {
-            for (int i = 0; i < camellos.size(); i++) {
-                Camello c = camellos.get(i);
-                if (!c.isHaLlegado()) {
-                    int pasos = generarPasoAleatorio();
-                    c.avanzar(pasos);
-                    camelLabels.get(i).setBounds(105 + c.getPosicion(), 70 + i * 80, 40, 40);
-                    if (c.isHaLlegado()) {
-                        carreraTerminada = true;
-                        mostrarGanador(c.getNombre(), i);
-                        break;
-                    }
+            //llamar al metodo recibir pasos.
                 }
             }
             try { Thread.sleep(70); }
@@ -92,8 +82,9 @@ public class Carrera extends JFrame implements Runnable {
                 ", Puerto: " + puerto + "] Pulsa para nueva partida.");
     }
 
-    private int generarPasoAleatorio() {
-        return (int) (Math.random() * 3) + 1; // Devuelve 1, 2 o 3
+    private void recibirPasos(int pasos){
+         //reciben los pasos y mueve el camello ;
+
     }
 
     private void mostrarGanador(String nombre, int idx) {
