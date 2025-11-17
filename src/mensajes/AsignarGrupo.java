@@ -13,6 +13,10 @@ public class AsignarGrupo extends Mensaje {
         this.idCarrera = idCarrera;
     }
 
+    public AsignarGrupo(int idGrupo, String ipMulti, int puerto) {
+        super();
+    }
+
     public int getIdCarrera() {
         return idCarrera;
     }

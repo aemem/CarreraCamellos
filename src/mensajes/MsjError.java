@@ -1,13 +1,13 @@
 package mensajes;
 
-public class Error extends Mensaje {
+public class MsjError extends Mensaje {
 
     // Mensajes de error. Hay que decidir que tipos de mensaje va a haber
     //asdadasdasd
 
     public TipoError tipoError;
 
-    public Error (TipoError tipoError) {
+    public MsjError(TipoError tipoError) {
         this.tipoMsg = tipoMsg.ERROR;
         this.tipoError = tipoError == null ? TipoError.DEFAULT: tipoError;
 
