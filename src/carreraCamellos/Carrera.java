@@ -10,7 +10,7 @@ import java.net.InetAddress;
 public class Carrera extends JFrame implements Runnable {
     // atributos de la interfaz
     private static final Color COLORS[] = {Color.GREEN, Color.RED, Color.YELLOW, Color.CYAN};
-    private static final int FINISH_LINE_X = 600;
+    private static final int FINISH_LINE_X = 100;
     private ArrayList<JLabel> camelLabels;
     private JButton buttonRun;
     private JPanel bgPanel;
@@ -156,26 +156,17 @@ public class Carrera extends JFrame implements Runnable {
         return (int) (Math.random() * 3) + 1; // Devuelve 1, 2 o 3
     }
 
+    private void moverCamello(int pasos){
+
+
+    }
+
     @Override
     public void run() {
         carreraTerminada = false;
 
         while (!carreraTerminada) {
-            for (int i = 0; i < camellos.size(); i++) {
-                Camello c = camellos.get(i);
-                if (!c.isHaLlegado()) {
-                    int pasos = generarPasoAleatorio();
-                    c.avanzar(pasos);
-                    camelLabels.get(i).setBounds(105 + c.getPosicion(), 70 + i * 80, 40, 40);
-                    if (c.isHaLlegado()) {
-                        carreraTerminada = true;
-                        mostrarGanador(c.getNombre(), i);
-                        break;
-                    }
-                }
-            }
-            try { Thread.sleep(70); }
-            catch (InterruptedException ex) { Thread.currentThread().interrupt(); }
+
         }
         buttonRun.setEnabled(true);
         buttonRun.setText("Nueva carrera");

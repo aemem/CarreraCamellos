@@ -100,6 +100,7 @@ public class Servidor{
                     udp.enviar(ecFin);
                     carrera.setCarreraTerminada(true);
                 }
+                // evento caida
             }
         }
     }

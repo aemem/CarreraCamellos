@@ -21,7 +21,10 @@ public class Camello {
     private static final int PUERTO_TCP = 12345;
     private String host = "localhost";
     private int idCamello;
-    Socket socket;
+    private Socket socket;
+    private int posicion = 0;
+    private final int meta = 100;
+
 
     public Camello(int idCamello) throws IOException {
         Socket socket = new Socket(host, PUERTO_TCP);
@@ -29,6 +32,18 @@ public class Camello {
 
     public int getIdCamello() {
         return idCamello;
+    }
+
+    public int getPosicion() {
+        return posicion;
+    }
+
+    public void setPosicion(int posicion) {
+        this.posicion = posicion;
+    }
+
+    public int getMeta() {
+        return meta;
     }
 
     TCPunicast tcp = new TCPunicast(socket);
