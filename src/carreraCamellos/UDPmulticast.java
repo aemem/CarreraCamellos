@@ -22,6 +22,7 @@ public class UDPmulticast{
     public UDPmulticast(){}
 
     public void enviar(EventoCarrera evento) throws IOException {
+        if (socket == null) System.out.println("No se ha encontrado socket");
         ByteArrayOutputStream baos = new ByteArrayOutputStream();
         ObjectOutputStream oos = new ObjectOutputStream(baos);
 
@@ -44,7 +45,7 @@ public class UDPmulticast{
     }
 
     public EventoCarrera recibir() throws IOException, ClassNotFoundException {
-
+        if (socket == null) System.out.println("No se ha encontrado socket");
 
         byte[] recibidos = new byte[2048];
         DatagramPacket paquete = new DatagramPacket(recibidos, recibidos.length);

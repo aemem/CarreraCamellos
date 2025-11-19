@@ -2,8 +2,10 @@ package carreraCamellos;
 
 import mensajes.*;
 
+import javax.swing.*;
 import java.io.IOException;
 import java.net.InetAddress;
+import java.net.MulticastSocket;
 import java.net.ServerSocket;
 import java.net.Socket;
 import java.util.ArrayList;
@@ -16,7 +18,7 @@ import static mensajes.TipoEvento.*;
 public class Servidor{
 
     // Atributos
-    private int idServidor = 1;
+    private int idServidor;
     private static final int PUERTO_TCP = 12345;
     private static int puertoUDP = 600; // se añadirá la idGrupo para que cambie en cada carrera
     private String dirGrupo = "232.0.0."; //raiz de la ip multicast a la que se añadirá la idGrupo como cuarto octeto para que cambie en cada carrera
@@ -48,68 +50,90 @@ public class Servidor{
             if(msjUni instanceof SolicitarJugar){
                 System.out.println("Procesando solicitud de unirse a la carrera...");
                 // unir al camello a un grupo
-                asignarCamello(((SolicitarJugar) msjUni).getIdCamello());
+                int id = ((SolicitarJugar) msjUni).getIdCamello();
+                Carrera carrera = asignarCamello(id);
                 // enviar asignacion de grupo
-                String ipMulti = dirGrupo + String.valueOf(idGrupo);
+                String ipMulti = dirGrupo + idGrupo;
                 int puerto = puertoUDP + idGrupo;
                 AsignarGrupo ag = new AsignarGrupo(idGrupo, ipMulti, puerto);
                 tcp.enviar(ag);
                 idGrupo++;
+
+                // Si la carrera está llena, empieza
+                if(carrera.estaLlena()){
+                    SwingUtilities.invokeLater(() -> carrera.setVisible(true));
+                    new Thread(() -> {
+                        try{
+                            controlarCarrera(carrera);
+                        }catch (Exception e){
+                            e.printStackTrace();
+                        }
+                    },"Carrera-"+ carrera.getIdCarrera()).start();
+                }
+
             }else if(msjUni instanceof MsjError){
                 System.out.println("Error" + ((MsjError) msjUni).getTipoError());
-                // segun el tipo de error ya veré como manejarlo
+                // manejar error
             }
         } catch (ClassNotFoundException | IOException e) {
             System.out.println("No se encuentra el mensaje");
-            throw new RuntimeException(e);
+            e.printStackTrace();
         }
     }
 
     // 2. Añadir Camello a un grupo, cuando un grupo tenga 4 camellos se cierra
     // 3. Asignar al grupo una idGrupo (usar semáforo) y dir IP multicast (enviar msg AsignarGrupo)
-    public void asignarCamello(int idCamello) throws IOException, ClassNotFoundException {
-        try{
+    public Carrera asignarCamello(int idCamello) throws IOException, ClassNotFoundException {
+        try {
             semaforo.acquire();
-            // busca una carrera con hueco
-            for (Carrera c : carreras){
-                if(!c.estaLlena()){
+
+            for (Carrera c : carreras) {
+                if (!c.estaLlena()) {
                     c.agregarCamello(idCamello);
+                    return c;
                 }
             }
 
-            // si no hay crea una nueva
-            InetAddress ipGrupo = InetAddress.getByName(dirGrupo + String.valueOf(idGrupo));
+            InetAddress ipGrupo = InetAddress.getByName(dirGrupo + idGrupo);
             int puerto = puertoUDP + idGrupo;
-            Carrera nuevaCarrera = new Carrera(idGrupo, ipGrupo, puerto);
-            nuevaCarrera.agregarCamello(idCamello);
-            carreras.add(nuevaCarrera);
-            semaforo.release();
+
+            Carrera nueva = new Carrera(idGrupo, ipGrupo, puerto);
+            nueva.agregarCamello(idCamello);
+            carreras.add(nueva);
+
+            idGrupo++;
+            return nueva;
         } catch (InterruptedException e) {
+            Thread.currentThread().interrupt();
             throw new RuntimeException(e);
+        } finally {
+            semaforo.release();
         }
 
     }
 
     public void controlarCarrera(Carrera carrera) throws IOException, ClassNotFoundException {
-        if(carrera.isCarreraLista()){
-            while(!carrera.isCarreraTerminada()){
-                // 4. Enviar al grupo msg EventoCarrera - SALIDA
-                UDPmulticast udp = new UDPmulticast(carrera.getIpGrupo(), carrera.getPuerto()); // necesita recibir como parametros InetAddress y puerto
-                EventoCarrera ecSalida = new EventoCarrera(SALIDA); // necesita recibir como parámetro el tipo de evento
-                udp.enviar(ecSalida);
-                carrera.run();
 
-                // 5. Espera a recibir msg EventoCarrera - META
-                EventoCarrera ec = udp.recibir();
-                if(ec.getTipoEvento() == META){
-                    // 6. Enviar msg FinCarrera al grupo
-                    EventoCarrera ecFin = new EventoCarrera(FIN); // necesita recibir como parámetro el tipo de evento
-                    udp.enviar(ecFin);
-                    carrera.setCarreraTerminada(true);
+        try(MulticastSocket ms = new MulticastSocket(carrera.getPuerto())){
+            ms.joinGroup(carrera.getIpGrupo());
+            UDPmulticast udp = new UDPmulticast(carrera.getIpGrupo(), carrera.getPuerto());
+            udp.socket = ms;
+
+            udp.enviar(new EventoCarrera(idServidor,SALIDA));
+            System.out.println("SALIDA enviada al grupo " + carrera.getIdCarrera());
+
+            while (true){
+                EventoCarrera ev = udp.recibir();
+                if(ev.getTipoEvento() == META){
+                    System.out.println("META recibida del camello " + ev.getIdEmisor());
+                    udp.enviar(new EventoCarrera(1, FIN));
+                    System.out.println("FIN de la carrera " + carrera.getIdCarrera());
+                    break;
                 }
-                // evento caida
             }
+            carrera.setCarreraTerminada(true);
         }
+
     }
 
     public void crearRanking(){
@@ -117,7 +141,12 @@ public class Servidor{
     }
 
     public static void main(String[] args) throws IOException, ClassNotFoundException {
-
+        Servidor servidor = new Servidor();
+        try{
+            servidor.iniciarServidor();
+        }catch (Exception e){
+            e.printStackTrace();
+        }
     }
 
 }

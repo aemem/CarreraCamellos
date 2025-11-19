@@ -9,8 +9,7 @@ public class MsjError extends Mensaje {
 
     public TipoError tipoError;
 
-    public MsjError(int id, TipoError tipoError) {
-        super(id);
+    public MsjError(TipoError tipoError) {
         tipoMsg = ERROR;
         this.tipoError = tipoError;
     }

@@ -11,6 +11,7 @@ import java.io.IOException;
 import java.net.InetAddress;
 import java.net.MulticastSocket;
 import java.net.Socket;
+import java.net.URL;
 
 import static javax.swing.BorderFactory.createEmptyBorder;
 import static mensajes.TipoEvento.*;
@@ -28,6 +29,8 @@ public class Camello extends JFrame {
     private Socket socket;
     private TCPunicast tcp;
 
+    private String ipMulti;   // keep for sending META
+    private int puertoMulti;
     Thread listener;
     private boolean escuchandoMulti = false;
 
@@ -55,6 +58,13 @@ public class Camello extends JFrame {
         camelLabel.setBorder(BorderFactory.createEmptyBorder());
         add(camelLabel, BorderLayout.CENTER);
 
+        ImageIcon icon = loadCamelIcon(40, 40);
+        if (icon != null) {
+            camelLabel.setIcon(icon);
+        } else {
+            camelLabel.setText("\\uD83D\\uDC2B");
+        }
+
         statusLabel = new JLabel("Inicializando...", SwingConstants.CENTER);
         add(statusLabel, BorderLayout.SOUTH);
 
@@ -73,8 +83,14 @@ public class Camello extends JFrame {
         return posicion;
     }
 
-    public void setPosicion(int posicion) {
-        this.posicion = posicion;
+    private ImageIcon loadCamelIcon(int w, int h){
+        URL url = getClass().getResource("camel.png");
+        if (url == null){
+            System.out.println("No se econtró camel.png");
+            return null;
+        }
+        Image img = new ImageIcon(url).getImage().getScaledInstance(w,h, Image.SCALE_SMOOTH);
+        return new ImageIcon(img);
     }
 
     // Enviad solicitud de juego al servidor
@@ -129,8 +145,8 @@ public class Camello extends JFrame {
                 });
                 break;
             case CAIDA:
-                System.out.format("El camello %d se ha caído de la carrera", ev.id);
-                SwingUtilities.invokeLater(() -> statusLabel.setText("Caída"));º
+                System.out.format("El camello %d se ha caído de la carrera", ev.idEmisor);
+                SwingUtilities.invokeLater(() -> statusLabel.setText("Caída"));
                 break;
             default:
                 System.out.println("Evento inválido");
@@ -149,6 +165,8 @@ public class Camello extends JFrame {
                             String.format("Asignado a grupo %d – %s:%d", ag.getIdCarrera(),ag.ipMulti,ag.puerto)));
 
             // Unirse al multicast y escuchar
+            this.ipMulti = ag.ipMulti;
+            this.puertoMulti = ag.puerto;
             listenerMulticast(ag.ipMulti, ag.puerto);
         }else{
             System.out.println("Error al intentar unirse al grupo");
@@ -156,29 +174,38 @@ public class Camello extends JFrame {
     }
 
     private void avanzar(){
+        try {
+            UDPmulticast udp = new UDPmulticast();
+            udp.socket = new MulticastSocket();
+            udp.ipMulticast = InetAddress.getByName(ipMulti);
+            udp.puerto = puertoMulti;
+
         int pasos = (int) (Math.random() * 3) + 1;
         posicion += pasos;
+        EventoCarrera paso = new EventoCarrera(idCamello, TipoEvento.PASO);
+        paso.setPasos(pasos);
+
+        udp.enviar(paso);
+
 
         SwingUtilities.invokeLater(() -> {
             camelLabel.setLocation(posicion + 20, camelLabel.getY());
             statusLabel.setText(String.format("Camello %d avanza %d pasos: ", idCamello, pasos));
         });
 
-        if(posicion >= meta){
-            try{
-                UDPmulticast udp = new UDPmulticast();
-                udp.socket = new MulticastSocket();
-                udp.enviar(new EventoCarrera(idCamello, META));
-            } catch (IOException e) {
-                throw new RuntimeException(e);
-            }
+        if (posicion >= meta) {
+
+            udp.enviar(new EventoCarrera(idCamello, TipoEvento.META));
         }
+        }catch (IOException e) {
+                e.printStackTrace();
+            }
     }
     public void escucharMensajesCaida() {
         try {
             InetAddress grupo = InetAddress.getByName(ipMulti);
-            UDPmulticast udp = new UDPmulticast(grupo,puerto);
-            udp.socket = new MulticastSocket(puerto);
+            UDPmulticast udp = new UDPmulticast(grupo,puertoMulti);
+            udp.socket = new MulticastSocket(puertoMulti);
             udp.socket.joinGroup(grupo);
             while (true) {
                 EventoCarrera mensaje = udp.recibir();
