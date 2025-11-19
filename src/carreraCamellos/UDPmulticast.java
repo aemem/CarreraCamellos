@@ -19,6 +19,8 @@ public class UDPmulticast{
         this.puerto = puerto;
     }
 
+    public UDPmulticast(){}
+
     public void enviar(EventoCarrera evento) throws IOException {
         ByteArrayOutputStream baos = new ByteArrayOutputStream();
         ObjectOutputStream oos = new ObjectOutputStream(baos);

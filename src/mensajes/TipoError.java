@@ -1,11 +1,10 @@
 package mensajes;
 
 public enum TipoError {
-
     PAQUETE("HOLA") ,
     DIRECTORIO("Directorio"),
-    DEFAULT("ERROR no especificado");
-
+    DEFAULT("ERROR no especificado"),
+    DESCONEXION("Se desconecto un cliente");
     private final String mensaje;
 
     TipoError(String mensaje) {
@@ -15,6 +14,4 @@ public enum TipoError {
     public String getMensaje() {
         return mensaje;
     }
-
-    // TipoError.PAQUETE.getMensaje();
 }

@@ -67,19 +67,26 @@ public class Servidor{
     // 2. Añadir Camello a un grupo, cuando un grupo tenga 4 camellos se cierra
     // 3. Asignar al grupo una idGrupo (usar semáforo) y dir IP multicast (enviar msg AsignarGrupo)
     public void asignarCamello(int idCamello) throws IOException, ClassNotFoundException {
-        // busca una carrera con hueco
-        for (Carrera c : carreras){
-            if(!c.estaLlena()){
-                c.agregarCamello(idCamello);
+        try{
+            semaforo.acquire();
+            // busca una carrera con hueco
+            for (Carrera c : carreras){
+                if(!c.estaLlena()){
+                    c.agregarCamello(idCamello);
+                }
             }
+
+            // si no hay crea una nueva
+            InetAddress ipGrupo = InetAddress.getByName(dirGrupo + String.valueOf(idGrupo));
+            int puerto = puertoUDP + idGrupo;
+            Carrera nuevaCarrera = new Carrera(idGrupo, ipGrupo, puerto);
+            nuevaCarrera.agregarCamello(idCamello);
+            carreras.add(nuevaCarrera);
+            semaforo.release();
+        } catch (InterruptedException e) {
+            throw new RuntimeException(e);
         }
 
-        // si no hay crea una nueva
-        InetAddress ipGrupo = InetAddress.getByName(dirGrupo + String.valueOf(idGrupo));
-        int puerto = puertoUDP + idGrupo;
-        Carrera nuevaCarrera = new Carrera(idGrupo, ipGrupo, puerto);
-        nuevaCarrera.agregarCamello(idCamello);
-        carreras.add(nuevaCarrera);
     }
 
     public void controlarCarrera(Carrera carrera) throws IOException, ClassNotFoundException {
