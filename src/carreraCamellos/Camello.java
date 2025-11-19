@@ -4,6 +4,7 @@ import mensajes.AsignarGrupo;
 import mensajes.EventoCarrera;
 import mensajes.SolicitarJugar;
 
+import javax.swing.*;
 import java.io.IOException;
 import java.net.InetAddress;
 import java.net.MulticastSocket;
@@ -11,7 +12,7 @@ import java.net.Socket;
 
 import static mensajes.TipoEvento.*;
 
-public class Camello {
+public class Camello extends JFrame {
 
     // Cliente. Cada camello tiene una carrera en la que participa.
     // Recibe mensajes del servidor (AsignarGrupo, EventoCarrera, FinCarrera)
@@ -25,6 +26,7 @@ public class Camello {
     private int posicion = 0;
     private final int meta = 100;
 
+    public Camello() throws IOException {}
 
     public Camello(int idCamello) throws IOException {
         Socket socket = new Socket(host, PUERTO_TCP);
@@ -69,14 +71,18 @@ public class Camello {
         }
     }
 
+    private int avanzar(){
+        int pasos = (int) (Math.random() * 3) + 1;
+        return pasos;
+    }
+
     public void gestionCarrera(Carrera carrera) throws IOException {
         UDPmulticast udp = new UDPmulticast(carrera.getIpGrupo(), carrera.getPuerto());
         while (posicion < meta){
-            int pasos = generarPasos();
-            EventoCarrera evPasos = new EventoCarrera(PASO, pasos, idCamello);
+            EventoCarrera evPasos = new EventoCarrera(PASO);
             udp.enviar(evPasos);
         }
-        EventoCarrera evMeta = new EventoCarrera(META, idCamello);
+        EventoCarrera evMeta = new EventoCarrera(META);
         udp.enviar(evMeta);
     }
 

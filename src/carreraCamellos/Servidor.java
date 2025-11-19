@@ -18,7 +18,7 @@ public class Servidor{
     // Atributos
     private static final int PUERTO_TCP = 12345;
     private static int puertoUDP = 600; // se añadirá la idGrupo para que cambie en cada carrera
-    private String dirGrupo = "230.0.0."; //raiz de la ip multicast a la que se añadirá la idGrupo como cuarto octeto para que cambie en cada carrera
+    private String dirGrupo = "232.0.0."; //raiz de la ip multicast a la que se añadirá la idGrupo como cuarto octeto para que cambie en cada carrera
     private int maxCamellos = 4; // maximo de camellos por grupo
     private List<Carrera> carreras = new ArrayList<>(); // array de carreras creadas
     private int idGrupo = 1;
@@ -80,7 +80,6 @@ public class Servidor{
         Carrera nuevaCarrera = new Carrera(idGrupo, ipGrupo, puerto);
         nuevaCarrera.agregarCamello(idCamello);
         carreras.add(nuevaCarrera);
-
     }
 
     public void controlarCarrera(Carrera carrera) throws IOException, ClassNotFoundException {

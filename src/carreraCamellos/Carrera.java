@@ -152,13 +152,19 @@ public class Carrera extends JFrame implements Runnable {
         camellos.add(camello);
     }
 
-    private int generarPasoAleatorio() {
-        return (int) (Math.random() * 3) + 1; // Devuelve 1, 2 o 3
-    }
-
-    private void moverCamello(int pasos){
-
-
+    private void moverCamello(int pasos, int idCamello){
+        int indice = 0;
+        Camello cam = new Camello();
+        for(int i = 0; i < camellos.size(); i++){
+            if(camellos.get(i).getIdCamello() == idCamello){
+                cam = camellos.get(i);
+                indice = i;
+            }
+        }
+        camelLabels.get(indice).setBounds(105 + cam.getPosicion(), 70 + indice * 80, 40, 40);
+        if(camellos.get(indice).getPosicion() + pasos >= FINISH_LINE_X){
+            setCarreraTerminada(true);
+        }
     }
 
     @Override
@@ -166,6 +172,7 @@ public class Carrera extends JFrame implements Runnable {
         carreraTerminada = false;
 
         while (!carreraTerminada) {
+
 
         }
         buttonRun.setEnabled(true);
