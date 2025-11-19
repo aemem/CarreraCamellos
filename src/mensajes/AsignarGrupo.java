@@ -12,8 +12,9 @@ public class AsignarGrupo extends Mensaje {
     public String ipMulti;
     public int puerto;
 
-    public AsignarGrupo(int idCarrera, String ipMulti, int puerto) {
-        this.tipoMsg = TipoMsg.ASIGNAR_GRUPO;
+    public AsignarGrupo(int id, int idCarrera, String ipMulti, int puerto) {
+        super(id);
+        tipoMsg = TipoMsg.ASIGNAR_GRUPO;
         this.idCarrera = idCarrera;
         this.ipMulti = ipMulti;
         this.puerto = puerto;

@@ -131,7 +131,7 @@ public class Carrera extends JFrame implements Runnable {
         }
 
         buttonRun.addActionListener(e -> {
-            resetCarrera();
+            //resetCarrera();
             buttonRun.setEnabled(false);
             labelWinner.setText("");
             statusBar.setText("¡Carrera en marcha! [ID Carrera: " + idCarrera +
@@ -143,7 +143,7 @@ public class Carrera extends JFrame implements Runnable {
         bgPanel.repaint();
     }
 
-    // maetodos carrera
+    // metodos carrera
 
     public boolean estaLlena() {
         if (camellos.size() < 4) {
@@ -158,7 +158,7 @@ public class Carrera extends JFrame implements Runnable {
 
     private void moverCamello(int pasos, int idCamello) throws IOException {
         int indice = 0;
-        Camello cam = new Camello();
+        Camello cam = new Camello(idCamello);
         for (int i = 0; i < camellos.size(); i++) {
             if (camellos.get(i).getIdCamello() == idCamello) {
                 cam = camellos.get(i);
@@ -168,6 +168,32 @@ public class Carrera extends JFrame implements Runnable {
         camelLabels.get(indice).setBounds(105 + cam.getPosicion(), 70 + indice * 80, 40, 40);
         if (camellos.get(indice).getPosicion() + pasos >= FINISH_LINE_X) {
             setCarreraTerminada(true);
+        }
+    }
+
+    public boolean contieneCamello(int idCamello) {
+        for (Camello camello : camellos) {
+            if (camello.getIdCamello() == idCamello) {
+                return true;
+            }
+        }
+        return false;
+    }
+
+
+    public void eliminarCamello(int idCamello) {
+        for (int i = 0; i < camellos.size(); i++) {
+            if (camellos.get(i).getIdCamello() == idCamello) {
+                camellos.remove(i);
+                // También eliminar de la interfaz si es necesario
+                if (i < camelLabels.size()) {
+                    bgPanel.remove(camelLabels.get(i));
+                    camelLabels.remove(i);
+                    bgPanel.repaint();
+                }
+                System.out.println("Camello " + idCamello + " eliminado de la carrera " + idCarrera);
+                break;
+            }
         }
     }
 
@@ -189,7 +215,7 @@ public class Carrera extends JFrame implements Runnable {
                 EventoCarrera ev = udp.recibir();
 
                 if (ev.getTipoEvento() == TipoEvento.PASO) {
-                    int id = //id camello
+                    int id = ev.id;
                     int pasos = (int) (Math.random() * 3) + 1;
                     moverCamello(pasos, id);
                 } else if (ev.getTipoEvento() == TipoEvento.META) {

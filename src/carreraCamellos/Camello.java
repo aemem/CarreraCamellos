@@ -129,7 +129,8 @@ public class Camello extends JFrame {
                 });
                 break;
             case CAIDA:
-                SwingUtilities.invokeLater(() -> statusLabel.setText("Caída"));
+                System.out.format("El camello %d se ha caído de la carrera", ev.id);
+                SwingUtilities.invokeLater(() -> statusLabel.setText("Caída"));º
                 break;
             default:
                 System.out.println("Evento inválido");
@@ -167,13 +168,37 @@ public class Camello extends JFrame {
             try{
                 UDPmulticast udp = new UDPmulticast();
                 udp.socket = new MulticastSocket();
-                udp.enviar(new EventoCarrera(META));
+                udp.enviar(new EventoCarrera(idCamello, META));
             } catch (IOException e) {
                 throw new RuntimeException(e);
             }
         }
     }
+    public void escucharMensajesCaida() {
+        try {
+            InetAddress grupo = InetAddress.getByName(ipMulti);
+            UDPmulticast udp = new UDPmulticast(grupo,puerto);
+            udp.socket = new MulticastSocket(puerto);
+            udp.socket.joinGroup(grupo);
+            while (true) {
+                EventoCarrera mensaje = udp.recibir();
+                if (mensaje.getTipoEvento() == CAIDA) {
+                    System.out.println("Camello " + idCamello + " recibió mensaje CAIDA - Eliminándose de la carrera");
 
+                    // Crear mensaje de notificación
+                    EventoCarrera aviso = new EventoCarrera(idCamello,CAIDA);
+
+                    // ► Enviar el mensaje al multicast
+                    udp.enviar(aviso);
+
+                    // Eliminar al camello
+                    System.exit(0);
+                }
+            }
+        } catch (IOException | ClassNotFoundException e) {
+            System.out.println("Error escuchando mensajes CAIDA: " + e.getMessage());
+        }
+    }
 
     public static void main(String[] args){
         SwingUtilities.invokeLater(() -> {

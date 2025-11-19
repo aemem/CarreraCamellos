@@ -16,6 +16,7 @@ import static mensajes.TipoEvento.*;
 public class Servidor{
 
     // Atributos
+    private int idServidor = 1;
     private static final int PUERTO_TCP = 12345;
     private static int puertoUDP = 600; // se añadirá la idGrupo para que cambie en cada carrera
     private String dirGrupo = "232.0.0."; //raiz de la ip multicast a la que se añadirá la idGrupo como cuarto octeto para que cambie en cada carrera

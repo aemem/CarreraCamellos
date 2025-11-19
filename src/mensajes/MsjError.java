@@ -1,5 +1,7 @@
 package mensajes;
 
+import static mensajes.TipoMsg.ERROR;
+
 public class MsjError extends Mensaje {
 
     // Mensajes de error. Hay que decidir que tipos de mensaje va a haber
@@ -7,10 +9,10 @@ public class MsjError extends Mensaje {
 
     public TipoError tipoError;
 
-    public MsjError(TipoError tipoError) {
-        this.tipoMsg = tipoMsg.ERROR;
-        this.tipoError = tipoError == null ? TipoError.DEFAULT: tipoError;
-
+    public MsjError(int id, TipoError tipoError) {
+        super(id);
+        tipoMsg = ERROR;
+        this.tipoError = tipoError;
     }
 
     public TipoError getTipoError() {

@@ -6,9 +6,12 @@ public class EventoCarrera extends Mensaje {
     // caida (error), meta (lo envia un camello cuando llega a la meta)
 
     public TipoEvento tipoEvento;
+    // añadir timestamp
 
-    public EventoCarrera(TipoEvento tipoEvento) {
-        this.tipoMsg = tipoMsg.EVENTO_CARRERA;
+
+    public EventoCarrera(int id, TipoEvento tipoEvento) {
+        super(id);
+        tipoMsg = TipoMsg.EVENTO_CARRERA;
         this.tipoEvento = tipoEvento;
     }
 
