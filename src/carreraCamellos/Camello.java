@@ -24,7 +24,7 @@ public class Camello extends JFrame {
 
     // Atributos comunicación
     private static final int PUERTO_TCP = 12345;
-    private String host = String.valueOf(InetAddress.getLocalHost());
+    private String host = InetAddress.getLocalHost().getHostAddress();
     private Socket socket;
     private TCPunicast tcp;
 
