@@ -19,7 +19,11 @@ public class UDPmulticast{
     public UDPmulticast(InetAddress ipMulticast, int puerto) throws IOException {
         this.ipMulticast = ipMulticast;
         this.puerto = puerto;
+        this.socket = new MulticastSocket(puerto); // <-- Crear socket
+        socket.joinGroup(ipMulticast);
     }
+
+
 
     public void enviar(EventoCarrera evento) throws IOException {
         ByteArrayOutputStream baos = new ByteArrayOutputStream();

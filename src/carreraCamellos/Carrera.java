@@ -1,8 +1,12 @@
 package carreraCamellos;
 
+import mensajes.EventoCarrera;
+import mensajes.TipoEvento;
+
 import javax.swing.*;
 import java.awt.*;
 import java.io.IOException;
+import java.net.MulticastSocket;
 import java.util.List;
 import java.util.ArrayList;
 import java.net.InetAddress;
@@ -40,7 +44,7 @@ public class Carrera extends JFrame implements Runnable {
         return carreraTerminada;
     }
 
-    public void setCarreraTerminada(boolean estado){
+    public void setCarreraTerminada(boolean estado) {
         this.carreraTerminada = estado;
     }
 
@@ -141,10 +145,10 @@ public class Carrera extends JFrame implements Runnable {
 
     // maetodos carrera
 
-    public boolean estaLlena(){
-        if (camellos.size() < 4){
+    public boolean estaLlena() {
+        if (camellos.size() < 4) {
             return false;
-        }else return true;
+        } else return true;
     }
 
     public void agregarCamello(int idCamello) throws IOException {
@@ -152,50 +156,75 @@ public class Carrera extends JFrame implements Runnable {
         camellos.add(camello);
     }
 
-    private int generarPasoAleatorio() {
-        return (int) (Math.random() * 3) + 1; // Devuelve 1, 2 o 3
-    }
-
-    private void moverCamello(int pasos){
-
-
+    private void moverCamello(int pasos, int idCamello) throws IOException {
+        int indice = 0;
+        Camello cam = new Camello();
+        for (int i = 0; i < camellos.size(); i++) {
+            if (camellos.get(i).getIdCamello() == idCamello) {
+                cam = camellos.get(i);
+                indice = i;
+            }
+        }
+        camelLabels.get(indice).setBounds(105 + cam.getPosicion(), 70 + indice * 80, 40, 40);
+        if (camellos.get(indice).getPosicion() + pasos >= FINISH_LINE_X) {
+            setCarreraTerminada(true);
+        }
     }
 
     @Override
     public void run() {
         carreraTerminada = false;
 
-        while (!carreraTerminada) {
+        try (MulticastSocket ms = new MulticastSocket(puerto)) {
+            // Unirse al grupo multicast
+            ms.joinGroup(ipGrupo);
+
+            // Enviar SALIDA
+            UDPmulticast udp = new UDPmulticast(ipGrupo, puerto);
+            udp.socket = ms;
+            udp.enviar(new EventoCarrera(TipoEvento.SALIDA));
+
+            // Recibir eventos
+            while (!carreraTerminada) {
+                EventoCarrera ev = udp.recibir();
+
+                if (ev.getTipoEvento() == TipoEvento.PASO) {
+                    int id = //id camello
+                    int pasos = (int) (Math.random() * 3) + 1;
+                    moverCamello(pasos, id);
+                } else if (ev.getTipoEvento() == TipoEvento.META) {
+                    udp.enviar(new EventoCarrera(TipoEvento.FIN));
+                    carreraTerminada = true;
+                }
+
+            }
+
+
+        } catch (IOException | ClassNotFoundException ex) {
+            ex.printStackTrace();
+            SwingUtilities.invokeLater(() -> {
+                buttonRun.setEnabled(true);
+                buttonRun.setText("Nueva carrera");
+                statusBar.setText("Carrera finalizada [ID: " + idCarrera +
+                        ", IP: " + ipGrupo.getHostAddress() +
+                        ", Puerto: " + puerto + "] Pulsa para nueva partida.");
+            });
 
         }
-        buttonRun.setEnabled(true);
-        buttonRun.setText("Nueva carrera");
-        statusBar.setText("Carrera finalizada [ID: " + idCarrera +
-                ", IP: " + ipGrupo.getHostAddress() +
-                ", Puerto: " + puerto + "] Pulsa para nueva partida.");
     }
 
-    private void mostrarGanador(String nombre, int idx) {
-        labelWinner.setText("¡El ganador es: " + nombre + "!");
-        labelWinner.setForeground(new Color(90, 30, 180));
-        labelWinner.setFont(new Font("Arial", Font.BOLD, 26));
-        camelLabels.get(idx).setFont(new Font("Dialog", Font.BOLD, 42));
-        statusBar.setText("Ganador: " + nombre +
-                " [ID Carrera: " + idCarrera +
-                ", IP: " + ipGrupo.getHostAddress() +
-                ", Puerto: " + puerto + "]");
-    }
-
-    private void resetCarrera() {
-        for (int i = 0; i < camellos.size(); i++) {
-            camellos.get(i).reset();
-            camelLabels.get(i).setBounds(105, 70 + i * 80, 40, 40);
-            camelLabels.get(i).setFont(new Font("Dialog", Font.PLAIN, 34));
+    // AÑADIR ESTE MÉTODO PARA VERIFICAR SI CONTIENE UN CAMELLO
+    public boolean contieneCamello(int idCamello) {
+        for (Camello camello : camellos) {
+            if (camello.getIdCamello() == idCamello) {
+                return true;
+            }
         }
-        labelWinner.setText("");
-        labelWinner.setForeground(Color.BLACK);
-        buttonRun.setText("Run");
+        return false;
     }
+
+
+
     // AÑADIR ESTE MÉTODO A LA CLASE CARRERA
     public void eliminarCamello(int idCamello) {
         for (int i = 0; i < camellos.size(); i++) {
@@ -212,15 +241,4 @@ public class Carrera extends JFrame implements Runnable {
             }
         }
     }
-
-    // AÑADIR ESTE MÉTODO PARA VERIFICAR SI CONTIENE UN CAMELLO
-    public boolean contieneCamello(int idCamello) {
-        for (Camello camello : camellos) {
-            if (camello.getIdCamello() == idCamello) {
-                return true;
-            }
-        }
-        return false;
-    }
-
 }

@@ -18,11 +18,12 @@ public class Servidor{
     // Atributos
     private static final int PUERTO_TCP = 12345;
     private static int puertoUDP = 600; // se añadirá la idGrupo para que cambie en cada carrera
-    private String dirGrupo = "230.0.0."; //raiz de la ip multicast a la que se añadirá la idGrupo como cuarto octeto para que cambie en cada carrera
+    private String dirGrupo = "232.0.0."; //raiz de la ip multicast a la que se añadirá la idGrupo como cuarto octeto para que cambie en cada carrera
     private int maxCamellos = 4; // maximo de camellos por grupo
     private List<Carrera> carreras = new ArrayList<>(); // array de carreras creadas
     private int idGrupo = 1;
     private final Semaphore semaforo = new Semaphore(1);
+    private Camello camellos = new Camello(maxCamellos);
 
     public void iniciarServidor(){
         // 1. Esperar a recibir msg SolicitarJugar de Camellos
@@ -63,40 +64,29 @@ public class Servidor{
             throw new RuntimeException(e);
         }
     }
-    private void enviarMensajeCaida() {
-        try {
-            // Buscar la carrera activa actual
-            for (Carrera carrera : carreras) {
-                if (!carrera.isCarreraTerminada()) {
-                    // Enviar mensaje UDP de caída al canal multicast de esta carrera
-                    UDPmulticast udp = new UDPmulticast(carrera.getIpGrupo(), carrera.getPuerto());
-                    EventoCarrera caida = new EventoCarrera(CAIDA);
-                    udp.enviar(caida);
-                    System.out.println("Mensaje CAIDA enviado al canal multicast de la carrera " + carrera.getIdCarrera());
-                    break;
-                }
-            }
-        } catch (IOException e) {
-            System.out.println("Error enviando mensaje CAIDA: " + e.getMessage());
-        }
-    }
 
     // 2. Añadir Camello a un grupo, cuando un grupo tenga 4 camellos se cierra
     // 3. Asignar al grupo una idGrupo (usar semáforo) y dir IP multicast (enviar msg AsignarGrupo)
     public void asignarCamello(int idCamello) throws IOException, ClassNotFoundException {
-        // busca una carrera con hueco
-        for (Carrera c : carreras){
-            if(!c.estaLlena()){
-                c.agregarCamello(idCamello);
+        try{
+            semaforo.acquire();
+            // busca una carrera con hueco
+            for (Carrera c : carreras){
+                if(!c.estaLlena()){
+                    c.agregarCamello(idCamello);
+                }
             }
-        }
 
-        // si no hay crea una nueva
-        InetAddress ipGrupo = InetAddress.getByName(dirGrupo + String.valueOf(idGrupo));
-        int puerto = puertoUDP + idGrupo;
-        Carrera nuevaCarrera = new Carrera(idGrupo, ipGrupo, puerto);
-        nuevaCarrera.agregarCamello(idCamello);
-        carreras.add(nuevaCarrera);
+            // si no hay crea una nueva
+            InetAddress ipGrupo = InetAddress.getByName(dirGrupo + String.valueOf(idGrupo));
+            int puerto = puertoUDP + idGrupo;
+            Carrera nuevaCarrera = new Carrera(idGrupo, ipGrupo, puerto);
+            nuevaCarrera.agregarCamello(idCamello);
+            carreras.add(nuevaCarrera);
+            semaforo.release();
+        } catch (InterruptedException e) {
+            throw new RuntimeException(e);
+        }
 
     }
 
@@ -121,7 +111,6 @@ public class Servidor{
             }
         }
     }
-
     public void crearRanking(){
 
     }
