@@ -1,11 +1,6 @@
 package mensajes;
 
-import java.net.InetAddress;
 
-/**
- * Mensaje que envía el servidor a los camellos con su ID de grupo
- * y la dirección IP multicast correspondiente.
- */
 public class AsignarGrupo extends Mensaje {
 
     public int idCarrera;

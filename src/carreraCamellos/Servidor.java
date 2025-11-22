@@ -59,7 +59,6 @@ public class Servidor{
 
                 // Si la carrera está llena, empieza
                 if(carrera.estaLlena()){
-
                     new Thread(() -> {
                         try{
                             controlarCarrera(carrera);
@@ -97,7 +96,7 @@ public class Servidor{
             InetAddress ipGrupo = InetAddress.getByName(dirGrupo + idGrupo);
             int puerto = puertoUDP + idGrupo;
 
-            Carrera nueva = new Carrera(idGrupo, ipGrupo, puerto);
+            Carrera nueva = new Carrera(idGrupo, ipGrupo, puerto, idCamello);
             nueva.agregarCamello(idCamello);
             idGrupo++;
             carreras.add(nueva);
@@ -137,7 +136,7 @@ public class Servidor{
 
     }
 
-    public static void main(String[] args) throws IOException, ClassNotFoundException {
+    public static void main(String[] args) {
         Servidor servidor = new Servidor();
         try{
             servidor.iniciarServidor();

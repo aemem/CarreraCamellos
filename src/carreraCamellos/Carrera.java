@@ -4,6 +4,7 @@ import mensajes.EventoCarrera;
 
 import javax.swing.*;
 import java.awt.*;
+import java.awt.geom.AffineTransform;
 import java.io.IOException;
 import java.net.MulticastSocket;
 import java.net.URL;
@@ -11,12 +12,14 @@ import java.util.List;
 import java.util.ArrayList;
 import java.net.InetAddress;
 
+import static mensajes.TipoEvento.*;
+
 public class Carrera extends JFrame implements Runnable {
     // atributos de la interfaz
     private static final Color COLORS[] = {Color.GREEN, Color.RED, Color.YELLOW, Color.CYAN};
-    private static final int FINISH_LINE_X = 100;
-    private static final int TRACK_START_X = 105;
+    private static final int FINISH_LINE_X = 600;
     private static final int CAMEL_ICON_SIZE = 40;
+
     private ArrayList<JLabel> camelLabels;
     private JButton buttonRun;
     private JPanel bgPanel;
@@ -28,32 +31,89 @@ public class Carrera extends JFrame implements Runnable {
     private static final int numCamellos = 4;
     private int idCarrera;
     private List<Integer> camellos;
+    private final int idCamelloLocal;
+    private boolean carreraIniciada = false;
+
     private InetAddress ipGrupo; // dirección multicast del grupo
     private int puerto;
-
-    private JLabel camelLabel;
+    private UDPmulticast udp;
 
 
     // Constructor
-    public Carrera(int idCarrera, InetAddress ipGrupo, int puerto) {
+    public Carrera(int idCarrera, InetAddress ipGrupo, int puerto, int idCamelloLocal) {
+        this.idCarrera = idCarrera;
         this.ipGrupo = ipGrupo;
         this.puerto = puerto;
-        this.idCarrera = idCarrera;
-        camellos = new ArrayList<>();
+        this.idCamelloLocal = idCamelloLocal;
         camelLabels = new ArrayList<>();
+        camellos = new ArrayList<>();
 
         setTitle("Carrera #" + idCarrera);
-        setPreferredSize(new Dimension(800, 700));
-        setDefaultCloseOperation(JFrame.DISPOSE_ON_CLOSE);
-        setResizable(false);
-        setLocationRelativeTo(null);
-        bgPanel = new JPanel();
-        setContentPane(bgPanel);
+        setSize(800, 400);
+        setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
+        setLayout(null);
 
-        crearInterfaceUI();
+        statusBar = new JLabel("Esperando...");
+        statusBar.setBounds(10, 10, 780, 30);
+        add(statusBar);
+
+        buttonRun = new JButton("Paso");
+        buttonRun.setBounds(340, 300, 120, 40);
+        buttonRun.addActionListener(e -> {
+            try {
+                avanzarCamelloLocal();
+            } catch (IOException ex) {
+                throw new RuntimeException(ex);
+            }
+        });
+
+        for (int i = 0; i < 4; i++) {
+            JLabel lbl = new JLabel();
+            lbl.setFont(new Font("Dialog", Font.PLAIN, 40));
+            lbl.setBounds(50, 50 + i * 70, CAMEL_ICON_SIZE, CAMEL_ICON_SIZE);
+            camelLabels.add(lbl);
+            add(lbl);
+        }
+
+        JPanel panelFondo = new JPanel(null) {
+            @Override
+            protected void paintComponent(Graphics g) {
+                super.paintComponent(g);
+                g.setColor(new Color(220, 220, 220));
+                for (int i = 0; i <= 4; i++) {
+                    int y = 70 + i * 70;
+                    g.drawLine(0, y, getWidth(), y);
+                }
+                g.setColor(Color.BLACK);
+                g.fillRect(FINISH_LINE_X, 50, 5, 280);
+
+                Graphics2D g2d = (Graphics2D) g;
+                g2d.setFont(new Font("Arial", Font.BOLD, 20));
+                g2d.setColor(Color.BLACK);
+                AffineTransform old = g2d.getTransform();
+                g2d.rotate(-Math.PI / 2);
+                g2d.drawString("META", -200, FINISH_LINE_X + 20);
+                g2d.setTransform(old);
+            }
+        };
+        panelFondo.setBounds(0, 0, 800, 400);
+
+        panelFondo.add(buttonRun);
+
+        add(panelFondo);
+
+        setVisible(true);
+
+        try {
+            udp = new UDPmulticast(ipGrupo, puerto);
+            udp.socket = new MulticastSocket(puerto);
+            udp.socket.joinGroup(ipGrupo);
+        } catch (IOException ex) {
+            ex.printStackTrace();
+        }
     }
 
-    // getters
+    // getters y setters
     public int getIdCarrera() {
         return idCarrera;
     }
@@ -70,91 +130,24 @@ public class Carrera extends JFrame implements Runnable {
         this.carreraTerminada = carreraTerminada;
     }
 
-    // metodos interfaz
-    private void crearInterfaceUI() {
-        bgPanel = new JPanel(null) {
-            @Override
-            protected void paintComponent(Graphics g) {
-                super.paintComponent(g);
-                // carriles
-                g.setColor(new Color(220, 220, 220));
-                for (int i = 0; i <= 4; i++) {
-                    int y = 70 + i * 80;
-                    g.drawLine(0, y, getWidth(), y);
-                }
-                // meta
-                g.setColor(Color.BLACK);
-                g.fillRect(FINISH_LINE_X, 70, 5, 80 * 4);
-                Graphics2D g2d = (Graphics2D) g;
-                g2d.setFont(new Font("Arial", Font.BOLD, 20));
-                g2d.setColor(Color.BLACK);
-                g2d.rotate(-Math.PI / 2);
-                g2d.drawString("META", -70 - 80 * 4 / 2, FINISH_LINE_X + 22);
-                g2d.rotate(Math.PI / 2);
-            }
-        };
-        setContentPane(bgPanel);
-        labelWinner = new JLabel("");
-        buttonRun   = new JButton("Iniciar");
-        statusBar   = new JLabel("Esperando...");
-
-        bgPanel.setBackground(new Color(240, 240, 240));
-        bgPanel.add(labelWinner);
-        bgPanel.add(buttonRun);
-        bgPanel.add(statusBar);
-
-        labelWinner.setFont(new Font("Arial", Font.BOLD, 22));
-        labelWinner.setForeground(Color.BLACK);
-        labelWinner.setBounds(0, 20, 800, 30);
-
-        buttonRun.setBounds(340, 610, 120, 40);
-        buttonRun.addActionListener(e -> {
-            buttonRun.setEnabled(false);
-            labelWinner.setText("");
-            statusBar.setText("¡Carrera en marcha! [ID: " + idCarrera +
-                    ", IP: " + ipGrupo.getHostAddress() +
-                    ", Puerto: " + puerto + "]");
-            // The UI thread is already visible; the race logic runs in a separate thread.
-            new Thread(this, "Carrera-Thread-" + idCarrera).start();
-        });
-
-        // barra de estado
-        statusBar.setFont(new Font("Arial", Font.ITALIC, 15));
-        statusBar.setForeground(Color.DARK_GRAY);
-        statusBar.setBounds(10, 655, 780, 25);
-
-    }
-
-    // metodos carrera
-
     public boolean estaLlena() {
         return camellos.size() >= 4;
     }
 
-    public void agregarCamello(int idCamello) throws IOException {
-        Camello camello = new Camello(idCamello);
-        camellos.add(camello.getIdCamello());
-        camelLabel = new JLabel(); // añadir imagen camello
-        camelLabel.setHorizontalAlignment(SwingConstants.LEFT);
-        camelLabel.setBorder(BorderFactory.createEmptyBorder());
-        add(camelLabel, BorderLayout.CENTER);
-
-        ImageIcon icon = loadCamelIcon(40, 40);
-        if (icon != null) {
-            camelLabel.setIcon(icon);
-        } else {
-            camelLabel.setText("\uD83D\uDC2B");
+    public void agregarCamello(int idCamello) {
+        if (camellos.size() >= numCamellos) return;
+        camellos.add(idCamello);
+        int idx = camellos.size() - 1;
+        if (idx >= 0 && idx < camelLabels.size()) {
+            JLabel lbl = camelLabels.get(idx);
+            lbl.setForeground(COLORS[idx % COLORS.length]);
+            ImageIcon icon = loadCamelIcon(CAMEL_ICON_SIZE, CAMEL_ICON_SIZE);
+            if (icon != null) {
+                lbl.setText("");
+                lbl.setIcon(icon);
+            }
         }
-        camelLabel.setFont(new Font("Dialog", Font.PLAIN, 34));
-        camelLabel.setForeground(COLORS[(camellos.size() - 1) % COLORS.length]);
-        camelLabel.setBounds(TRACK_START_X,
-                70 + (camellos.size() - 1) * 80,
-                CAMEL_ICON_SIZE,
-                CAMEL_ICON_SIZE);
-        camelLabels.add(camelLabel);
-        bgPanel.add(camelLabel);
-        bgPanel.revalidate();
-        bgPanel.repaint();
+        repaint();
     }
 
     private ImageIcon loadCamelIcon(int w, int h) {
@@ -167,40 +160,45 @@ public class Carrera extends JFrame implements Runnable {
         return new ImageIcon(img);
     }
 
-    private void moverCamello(int pasos, int idCamello) throws IOException {
-        int indice = 0;
-        // busca el camello con el id recibido
-        Camello cam = null;
-        for (int i = 0; i < camellos.size(); i++) {
-            if (camellos.get(i) == idCamello) {
-                cam = camellos.get(i);
-                indice = i;
-            }
-        }
-        // actualiza sus pasos y los muestra en la interfaz
-        int pos = cam.getPosicion() + pasos;
+    private void avanzarCamelloLocal() throws IOException {
+        if (carreraTerminada) return;
+        int pasos = (int) (Math.random() * 3) + 1;
+        moverCamello(pasos, idCamelloLocal);
 
-        camelLabels.get(indice).setBounds(105 + cam.getPosicion(), 70 + indice * 80, 40, 40);
-        if (pos >= FINISH_LINE_X && !carreraTerminada) {
-            setCarreraTerminada(true);
+        try {
+            EventoCarrera ev = new EventoCarrera(idCamelloLocal, PASO);
+            ev.setPasos(pasos);
+            udp.enviar(ev);
+            JLabel lbl = camelLabels.get(camellos.indexOf(idCamelloLocal));
+
+            if (lbl.getX() >= FINISH_LINE_X) {
+                EventoCarrera meta = new EventoCarrera(idCamelloLocal, META);
+                udp.enviar(meta);
+                carreraTerminada = true;
+                statusBar.setText("LLegaste a la meta");
+                buttonRun.setEnabled(false);
+
+            }
+        } catch (IOException e) {
+            throw new RuntimeException(e);
         }
+
+
     }
 
-    public boolean contieneCamello(int idCamello) {
-        for (Camello camello : camellos) {
-            if (camello.getIdCamello() == idCamello) {
-                return true;
-            }
-        }
-        return false;
+    void moverCamello(int pasos, int idCamello) throws IOException {
+        int idx = camellos.indexOf(idCamello);
+        if (idx < 0 || idx >= camelLabels.size()) return;
+        JLabel lbl = camelLabels.get(idx);
+        Point pos = lbl.getLocation();
+        lbl.setLocation(pos.x + pasos * 10, pos.y);
+        repaint();
     }
-
 
     public void eliminarCamello(int idCamello) {
         for (int i = 0; i < camellos.size(); i++) {
-            if (camellos.get(i).getIdCamello() == idCamello) {
+            if (camellos.get(i) == idCamello) {
                 camellos.remove(i);
-                // También eliminar de la interfaz si es necesario
                 if (i < camelLabels.size()) {
                     bgPanel.remove(camelLabels.get(i));
                     camelLabels.remove(i);
@@ -212,82 +210,48 @@ public class Carrera extends JFrame implements Runnable {
         }
     }
 
-    public void crearRanking()  {
-        setTitle("Ranking Carrera de Camellos");
-        setSize(350, 200);
-        setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
-        setLocationRelativeTo(null); // Centra la ventana
+    public void marcarMeta(int idCamello) {
+        SwingUtilities.invokeLater(() -> labelWinner.setText("Llegó a meta: Camello " + idCamello));
+    }
 
-        String[] columnNames = {"Posición", "Camello"};
-        Object[][] data = {
-                {"1", "Camello Amarillo"},
-                {"2", "Camello Amarillo"},
-                {"3", "Camello Amarillo"},
-                {"4", "Camello Amarillo"}
-        };
-        JTable table = new JTable(data, columnNames);
-        JScrollPane scrollPane = new JScrollPane(table);
-        add(scrollPane, BorderLayout.CENTER);
+    public void finalizarCarrera(int idGanador) {
+        SwingUtilities.invokeLater(() -> {
+            JOptionPane.showMessageDialog(this, "Camello " + idGanador + " ganó la carrera!");
+            labelWinner.setText("Ganador: Camello " + idGanador);
+            carreraTerminada = true;
+            buttonRun.setEnabled(false);
+        });
     }
 
     @Override
     public void run() {
-        carreraTerminada = false;
 
-        try (MulticastSocket ms = new MulticastSocket(puerto)) {
-            // Unirse al grupo multicast
-            ms.joinGroup(ipGrupo);
+        while (!carreraTerminada) {
+            try {
 
-            // Enviar SALIDA
-            UDPmulticast udp = new UDPmulticast(ipGrupo, puerto);
-            udp.socket = ms;
-
-            // Recibir eventos
-            while (!carreraTerminada) {
                 EventoCarrera ev = udp.recibir();
 
-                switch (ev.getTipoEvento()){
-                    case SALIDA:
-                        SwingUtilities.invokeLater(() ->
-                                statusBar.setText("¡Pulsa el botón para iniciar la carrera!"));
-                        break;
+                switch (ev.getTipoEvento()) {
                     case PASO:
-                        int idEmisor = ev.getIdEmisor();
-                        int pasos    = ev.getPasos();
-                        moverCamello(pasos, idEmisor);
+                        moverCamello(ev.getIdEmisor(), ev.getPasos());
                         break;
                     case META:
                         carreraTerminada = true;
-                        break;
-                    case FIN:
-                        carreraTerminada = true;
-                        SwingUtilities.invokeLater(() -> {
-                            statusBar.setText("Fin de la carrera");
-                            labelWinner.setText("Ganador: Camello " + ev.getIdEmisor());
-                            buttonRun.setEnabled(true);
-                            buttonRun.setText("Nueva carrera");
-                        });
+                        moverCamello(ev.getIdEmisor(), FINISH_LINE_X);
+                        statusBar.setText("Camello " + ev.getIdEmisor() + " llegó a la meta");
+                        buttonRun.setEnabled(false);
                         break;
                     case CAIDA:
-                        SwingUtilities.invokeLater(() ->
-                                statusBar.setText("Camello " + ev.getIdEmisor() + " cayó"));
+                        eliminarCamello(ev.getIdEmisor());
                         break;
                     default:
-                        System.out.println("Evento desconocido");
+
                 }
 
+
+            } catch (IOException | ClassNotFoundException e) {
+                e.printStackTrace();
             }
-
-        } catch (IOException | ClassNotFoundException ex) {
-            ex.printStackTrace();
-            SwingUtilities.invokeLater(() -> {
-                buttonRun.setEnabled(true);
-                buttonRun.setText("Nueva carrera");
-                statusBar.setText("Carrera finalizada [ID: " + idCarrera +
-                        ", IP: " + ipGrupo.getHostAddress() +
-                        ", Puerto: " + puerto + "] Pulsa para nueva partida.");
-            });
-
         }
     }
 }
