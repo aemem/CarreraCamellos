@@ -4,10 +4,7 @@ import mensajes.*;
 
 import javax.swing.*;
 import java.io.IOException;
-import java.net.InetAddress;
-import java.net.MulticastSocket;
-import java.net.ServerSocket;
-import java.net.Socket;
+import java.net.*;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.Semaphore;
@@ -29,9 +26,8 @@ public class Servidor{
 
     public void iniciarServidor(){
         // 1. Esperar a recibir msg SolicitarJugar de Camellos
-        System.out.println("Servidor iniciado, esperando solicitudes...");
-
         try(ServerSocket server = new ServerSocket(PUERTO_TCP)){
+            System.out.println("Servidor iniciado, esperando solicitudes...");
             while(true){
                 Socket camello =  server.accept();
                 gestorTCP(camello);
@@ -44,24 +40,26 @@ public class Servidor{
 
     public void gestorTCP(Socket camello){
         try{
-            TCPunicast tcp = new TCPunicast(camello); // el constructor de TCPunicast debe recibir el socket como parametro
+            TCPunicast tcp = new TCPunicast(camello);
             Mensaje msjUni = tcp.recibir();
+            System.out.println("Recibiendo mensaje solicitud");
             // comprobar si el mensaje es una solicitud o un error
             if(msjUni instanceof SolicitarJugar){
                 System.out.println("Procesando solicitud de unirse a la carrera...");
                 // unir al camello a un grupo
                 int id = ((SolicitarJugar) msjUni).getIdCamello();
+                System.out.println("Creando carrera...");
                 Carrera carrera = asignarCamello(id);
                 // enviar asignacion de grupo
-                String ipMulti = dirGrupo + idGrupo;
-                int puerto = puertoUDP + idGrupo;
-                AsignarGrupo ag = new AsignarGrupo(idGrupo, ipMulti, puerto);
+                String ipMulti = carrera.getIpGrupo().getHostAddress();
+                int puerto = carrera.getPuerto();
+                AsignarGrupo ag = new AsignarGrupo(carrera.getIdCarrera(), ipMulti, puerto);
                 tcp.enviar(ag);
-                idGrupo++;
+
 
                 // Si la carrera está llena, empieza
                 if(carrera.estaLlena()){
-                    SwingUtilities.invokeLater(() -> carrera.setVisible(true));
+
                     new Thread(() -> {
                         try{
                             controlarCarrera(carrera);
@@ -85,27 +83,30 @@ public class Servidor{
     // 3. Asignar al grupo una idGrupo (usar semáforo) y dir IP multicast (enviar msg AsignarGrupo)
     public Carrera asignarCamello(int idCamello) throws IOException, ClassNotFoundException {
         try {
+            System.out.println("Intentando acceder a semáforo...");
             semaforo.acquire();
 
             for (Carrera c : carreras) {
+                System.out.println("Buscando carreras con hueco...");
                 if (!c.estaLlena()) {
                     c.agregarCamello(idCamello);
                     return c;
                 }
             }
-
+            System.out.println("No hay carreras con hueco, creando una nueva...");
             InetAddress ipGrupo = InetAddress.getByName(dirGrupo + idGrupo);
             int puerto = puertoUDP + idGrupo;
 
             Carrera nueva = new Carrera(idGrupo, ipGrupo, puerto);
             nueva.agregarCamello(idCamello);
+            idGrupo++;
             carreras.add(nueva);
 
-            idGrupo++;
+
             return nueva;
         } catch (InterruptedException e) {
             Thread.currentThread().interrupt();
-            throw new RuntimeException(e);
+            throw new IOException("Error en semaforo", e);
         } finally {
             semaforo.release();
         }
@@ -133,10 +134,6 @@ public class Servidor{
             }
             carrera.setCarreraTerminada(true);
         }
-
-    }
-
-    public void crearRanking(){
 
     }
 
