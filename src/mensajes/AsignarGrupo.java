@@ -1,11 +1,14 @@
 package mensajes;
 
 
+import java.util.List;
+
 public class AsignarGrupo extends Mensaje {
 
     public int idCarrera;
     public String ipMulti;
     public int puerto;
+
 
     public AsignarGrupo(int idCarrera, String ipMulti, int puerto) {
         tipoMsg = TipoMsg.ASIGNAR_GRUPO;
@@ -25,4 +28,5 @@ public class AsignarGrupo extends Mensaje {
     public int getPuerto() {
         return puerto;
     }
+
 }

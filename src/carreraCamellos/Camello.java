@@ -1,29 +1,29 @@
 package carreraCamellos;
 
 import mensajes.AsignarGrupo;
-import mensajes.EventoCarrera;
 import mensajes.SolicitarJugar;
-import mensajes.TipoEvento;
 
-import javax.swing.*;
 import java.io.IOException;
 import java.net.InetAddress;
+import java.net.MulticastSocket;
 import java.net.Socket;
+import java.util.List;
 
 public class Camello {
-
+    // atributos
     private static final int PUERTO_TCP = 12345;
-    private static String hostServidor;
+    private static String host;
 
     private int idCamello;
     private Socket socketTCP;
     private TCPunicast tcp;
-
     private Carrera carrera; // GUI de la carrera
+    private int posicion;
 
+    // constructor
     public Camello(int idCamello) throws IOException {
         this.idCamello = idCamello;
-        this.socketTCP = new Socket(hostServidor, PUERTO_TCP);
+        this.socketTCP = new Socket(host, PUERTO_TCP);
         this.tcp = new TCPunicast(socketTCP);
     }
 
@@ -35,39 +35,30 @@ public class Camello {
 
     // Recibir asignación de grupo del servidor
     public void recibirAsignacion() throws IOException, ClassNotFoundException {
-        AsignarGrupo msg = (AsignarGrupo) tcp.recibir();
-        if (!(msg instanceof AsignarGrupo)) {
-            System.out.println("Error: mensaje inesperado del servidor");
-            return;
-        }
-        AsignarGrupo ag = (AsignarGrupo) msg;
+        AsignarGrupo ag = (AsignarGrupo) tcp.recibir();
         System.out.println("Recibida asignación de grupo: " + ag.getIdCarrera() +
                 ", IP: " + ag.getIpMulti() + ", puerto: " + ag.getPuerto());
 
+        InetAddress ip = InetAddress.getByName(ag.getIpMulti());
+        int puerto = ag.getPuerto();
+        MulticastSocket ms = new MulticastSocket(puerto);
+        ms.joinGroup(ip);
         // Crear la interfaz de carrera local
-        carrera = new Carrera(ag.getIdCarrera(), InetAddress.getByName(ag.getIpMulti()), ag.getPuerto(), idCamello);
-        carrera.agregarCamello(idCamello); // añadir el propio camello
-
+        carrera = new Carrera(ag.getIdCarrera(), ip, puerto, idCamello, ms);
+        carrera.getCamellos().add(idCamello);
         // Arrancar hilo para escuchar eventos multicast
         new Thread(carrera, "CarreraListener-" + idCamello).start();
     }
 
-    // Permite agregar los demás camellos cuando llegan
-    public void agregarCamello(int idOtroCamello) {
-        if (carrera != null) {
-            carrera.agregarCamello(idOtroCamello);
-        }
-    }
-
     public static void main(String[] args) {
         if (args.length < 1) {
-            System.out.println("Uso: java Camello <host_servidor>");
+            System.out.println("Falta ip del servidor");
             return;
         }
-        hostServidor = args[0];
+        host = args[0];
 
         try {
-            int id = (int) (Math.random() * 1000);
+            int id = (int) (Math.random() * 200);
             Camello camello = new Camello(id);
 
             camello.solicitarJugar();
