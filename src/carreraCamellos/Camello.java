@@ -7,7 +7,6 @@ import java.io.IOException;
 import java.net.InetAddress;
 import java.net.MulticastSocket;
 import java.net.Socket;
-import java.util.List;
 
 public class Camello {
     // atributos
@@ -18,7 +17,6 @@ public class Camello {
     private Socket socketTCP;
     private TCPunicast tcp;
     private Carrera carrera; // GUI de la carrera
-    private int posicion;
 
     // constructor
     public Camello(int idCamello) throws IOException {

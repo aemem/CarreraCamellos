@@ -24,7 +24,7 @@ public class Carrera extends JFrame implements Runnable {
 
     // atributos de la carrera
     private boolean carreraTerminada = false;
-    private static final int NUM_CAMELOS = 4;
+    private static final int NUM_CAMELLOS = 4;
     private final int idCarrera;
     private final List<Integer> camellos = new ArrayList<>();
     private final int idCamelloLocal;
@@ -54,7 +54,7 @@ public class Carrera extends JFrame implements Runnable {
             protected void paintComponent(Graphics g) {
                 super.paintComponent(g);
                 g.setColor(new Color(230, 230, 230));
-                for (int i = 0; i <= NUM_CAMELOS; i++) {
+                for (int i = 0; i <= NUM_CAMELLOS; i++) {
                     int y = 70 + i * 70;
                     g.drawLine(0, y, getWidth(), y);
                 }
@@ -103,7 +103,7 @@ public class Carrera extends JFrame implements Runnable {
         layeredPane.add(buttonRun, JLayeredPane.PALETTE_LAYER);
 
         // crear las labels para las imagenes de los camellos
-        for (int i = 0; i < NUM_CAMELOS; i++) {
+        for (int i = 0; i < NUM_CAMELLOS; i++) {
             JLabel lbl = new JLabel();
             lbl.setBounds(START_LINE_X, 70 + i * 70, CAMEL_ICON_SIZE, CAMEL_ICON_SIZE);
             camelLabels.add(lbl);

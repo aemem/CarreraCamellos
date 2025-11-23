@@ -4,9 +4,6 @@ import static mensajes.TipoMsg.ERROR;
 
 public class MsjError extends Mensaje {
 
-    // Mensajes de error. Hay que decidir que tipos de mensaje va a haber
-    //asdadasdasd
-
     public TipoError tipoError;
 
     public MsjError(TipoError tipoError) {
