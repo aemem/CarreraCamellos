@@ -1,5 +1,7 @@
 package mensajes;
 
+import java.util.List;
+
 public class EventoCarrera extends Mensaje {
 
     // mensaje que indica un evento de carrera: salida (lo envia servidor para empezar la carrera), paso (el camello avanza 1-3 pasos),
@@ -8,7 +10,7 @@ public class EventoCarrera extends Mensaje {
     public TipoEvento tipoEvento;
     public int idEmisor;
     private int pasos;
-    // añadir timestamp
+    public List<Integer> listaCamellos;
 
 
     public EventoCarrera(int id, TipoEvento tipoEvento) {
@@ -27,4 +29,7 @@ public class EventoCarrera extends Mensaje {
     }
     public int getPasos()             { return pasos; }
     public void setPasos(int pasos)   { this.pasos = pasos; }
+    public void setListaCamellos(List<Integer> lista) { this.listaCamellos = lista; }
+    public List<Integer> getListaCamellos() { return listaCamellos; }
+
 }

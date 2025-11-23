@@ -22,9 +22,11 @@ public class TCPunicast{
 
     public void enviar(Mensaje msj) throws IOException {
         oos.writeObject(msj);
+        System.out.println("Mensaje tcp enviado");
     }
     public Mensaje recibir() throws IOException, ClassNotFoundException {
         Mensaje msj = (Mensaje) ois.readObject();
+        System.out.println("Mensaje tcp recibido");
         return msj;
     }
 
