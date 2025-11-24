@@ -82,7 +82,7 @@ public class Carrera extends JFrame implements Runnable {
                 EventoCarrera ev = new EventoCarrera(idCamelloLocal, TipoEvento.PASO);
                 ev.setPasos(pasos);
                 udp.enviar(ev);
-
+                System.out.println("El camello " + idCamelloLocal + "ha avanzado " + pasos + " pasos");
                 int idx = camellos.indexOf(idCamelloLocal);
                 JLabel lbl = camelLabels.get(idx);
                 int posX = lbl.getX();
