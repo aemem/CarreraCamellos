@@ -23,6 +23,15 @@ public class Servidor{
     private int idGrupo = 1;
     private final Semaphore semaforo = new Semaphore(1);
 
+    public static void main(String[] args) {
+        Servidor servidor = new Servidor();
+        try{
+            servidor.iniciarServidor();
+        }catch (Exception e){
+            e.printStackTrace();
+        }
+    }
+
     public void iniciarServidor(){
         // 1. Esperar a recibir msg SolicitarJugar de Camellos
         try(ServerSocket server = new ServerSocket(PUERTO_TCP)){
@@ -141,14 +150,7 @@ public class Servidor{
         }
     }
 
-    public static void main(String[] args) {
-        Servidor servidor = new Servidor();
-        try{
-            servidor.iniciarServidor();
-        }catch (Exception e){
-            e.printStackTrace();
-        }
-    }
+
 // Clase con informacion de las carreras generadas
     private static class InfoCarrera {
         static final int MAX_CAMELLOS = 4;

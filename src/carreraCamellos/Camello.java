@@ -12,17 +12,42 @@ public class Camello {
     // atributos
     private static final int PUERTO_TCP = 12345;
     private static String host;
-
     private int idCamello;
     private Socket socketTCP;
     private TCPunicast tcp;
     private Carrera carrera; // GUI de la carrera
 
     // constructor
-    public Camello(int idCamello) throws IOException {
+    public Camello(int idCamello, InetAddress local) throws IOException {
         this.idCamello = idCamello;
-        this.socketTCP = new Socket(host, PUERTO_TCP);
+        this.socketTCP = new Socket(host, PUERTO_TCP, local, 0);
         this.tcp = new TCPunicast(socketTCP);
+    }
+
+    public static void main(String[] args) {
+        if (args.length < 1) {
+            System.out.println("Falta ip del servidor");
+            return;
+        }
+        host = args[0];
+
+        try {
+            // Buscar la interfaz de red a la que conectar
+            InetAddress local = TCPunicast.encontrarDireccionLocal(host);
+            System.out.println("Usando interfaz: " + local.getHostAddress());
+
+            // Crear camello
+            int id = (int) (Math.random() * 200);
+            Camello camello = new Camello(id, local);
+
+            // Enviar solicitud de juego y recibir asignacion
+            camello.solicitarJugar();
+            camello.recibirAsignacion();
+
+            System.out.println("Camello " + id + " listo para correr.");
+        } catch (IOException | ClassNotFoundException e) {
+            e.printStackTrace();
+        }
     }
 
     // Enviar solicitud de unirse a una carrera
@@ -48,23 +73,5 @@ public class Camello {
         new Thread(carrera, "CarreraListener-" + idCamello).start();
     }
 
-    public static void main(String[] args) {
-        if (args.length < 1) {
-            System.out.println("Falta ip del servidor");
-            return;
-        }
-        host = args[0];
 
-        try {
-            int id = (int) (Math.random() * 200);
-            Camello camello = new Camello(id);
-
-            camello.solicitarJugar();
-            camello.recibirAsignacion();
-
-            System.out.println("Camello " + id + " listo para correr.");
-        } catch (IOException | ClassNotFoundException e) {
-            e.printStackTrace();
-        }
-    }
 }
