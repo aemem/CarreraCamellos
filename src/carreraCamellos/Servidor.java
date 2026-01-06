@@ -117,7 +117,6 @@ public class Servidor{
         }
 
     }
-
     //Enviar mensaje de SALIDA a la carrera y escuchar udp por si llega algun mensaje de META
     public void controlarCarrera(InfoCarrera carrera) throws IOException, ClassNotFoundException {
 
