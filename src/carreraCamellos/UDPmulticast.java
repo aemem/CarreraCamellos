@@ -62,8 +62,7 @@ public class UDPmulticast{
         return evento;
     }
 
-    // Busca la interfaz de red con la direccion multicast del grupo
-    public static NetworkInterface encontrarDireccionLocal(InetAddress grupoAddress){
+    public static NetworkInterface encontrarInterfaz(InetAddress grupo){
         try {
 
             Enumeration<NetworkInterface> interfaces = NetworkInterface.getNetworkInterfaces();
@@ -75,16 +74,8 @@ public class UDPmulticast{
 
                 for (InterfaceAddress iadd : interfaz.getInterfaceAddresses()){
                     InetAddress direccion = iadd.getAddress();
-                    if (!(direccion instanceof Inet4Address)) continue;
+                    if (direccion instanceof Inet4Address) return interfaz;
 
-                    short prefijo = iadd.getNetworkPrefixLength();
-                    int mascara = getMascara(prefijo);
-                    int intHost = ip4toInt(grupoAddress);
-                    int intLocal = ip4toInt(direccion);
-
-                    if((intLocal & mascara) == (intHost & mascara)){
-                        return interfaz;
-                    }
                 }
             }
         }catch (Exception e) {

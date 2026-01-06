@@ -125,7 +125,7 @@ public class Servidor{
             UDPmulticast udp = new UDPmulticast(carrera.ipGrupo, carrera.puerto);
             udp.socket = ms;
             SocketAddress sockaddr = new InetSocketAddress(carrera.ipGrupo, carrera.puerto);
-            NetworkInterface netIf = udp.encontrarDireccionLocal(carrera.ipGrupo);
+            NetworkInterface netIf = udp.encontrarInterfaz(carrera.ipGrupo);
             ms.joinGroup(sockaddr,netIf);
             Thread.sleep(500);
             EventoCarrera salida = new EventoCarrera(idServidor,SALIDA);

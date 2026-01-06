@@ -60,7 +60,7 @@ public class Camello {
         MulticastSocket ms = new MulticastSocket(puerto);
 
         SocketAddress sockaddr = new InetSocketAddress(ip, puerto);
-        NetworkInterface netIf = UDPmulticast.encontrarDireccionLocal(ip);
+        NetworkInterface netIf = UDPmulticast.encontrarInterfaz(ip);
         ms.joinGroup(sockaddr,netIf);
         // Crear la interfaz de carrera local
         carrera = new Carrera(ag.getIdCarrera(), ip, puerto, idCamello, ms);
