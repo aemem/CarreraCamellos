@@ -18,9 +18,9 @@ public class Camello {
     private Carrera carrera; // GUI de la carrera
 
     // constructor
-    public Camello(int idCamello, InetAddress local) throws IOException {
+    public Camello(int idCamello) throws IOException {
         this.idCamello = idCamello;
-        this.socketTCP = new Socket(host, PUERTO_TCP, local, 0);
+        this.socketTCP = new Socket(host, PUERTO_TCP);
         this.tcp = new TCPunicast(socketTCP);
     }
 
@@ -32,21 +32,16 @@ public class Camello {
         host = args[0];
 
         try {
-            // Buscar la interfaz de red a la que conectar
-            InetAddress local = TCPunicast.encontrarDireccionLocal(host);
-            System.out.println("Usando interfaz: " + local.getHostAddress());
-
-            // Crear camello
             int id = (int) (Math.random() * 200);
-            Camello camello = new Camello(id, local);
+            Camello camello = new Camello(id);
 
-            // Enviar solicitud de juego y recibir asignacion
             camello.solicitarJugar();
             camello.recibirAsignacion();
 
             System.out.println("Camello " + id + " listo para correr.");
         } catch (IOException | ClassNotFoundException e) {
             e.printStackTrace();
+
         }
     }
 

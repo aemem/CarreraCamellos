@@ -3,9 +3,8 @@ package carreraCamellos;
 import mensajes.*;
 
 import java.io.*;
-import java.net.DatagramPacket;
-import java.net.InetAddress;
-import java.net.MulticastSocket;
+import java.net.*;
+import java.util.Enumeration;
 
 public class UDPmulticast{
     // metodos para la comunicacion entre el servidor y TODOS los camellos
@@ -61,5 +60,49 @@ public class UDPmulticast{
         bais.close();
 
         return evento;
+    }
+
+    // Busca la interfaz de red con la direccion multicast del grupo
+    public NetworkInterface encontrarDireccionLocal(InetAddress grupoAddress){
+        try {
+
+            Enumeration<NetworkInterface> interfaces = NetworkInterface.getNetworkInterfaces();
+
+            while(interfaces.hasMoreElements()){
+                NetworkInterface interfaz = interfaces.nextElement();
+
+                if (!interfaz.isUp() || interfaz.isLoopback()) continue;
+
+                for (InterfaceAddress iadd : interfaz.getInterfaceAddresses()){
+                    InetAddress direccion = iadd.getAddress();
+                    if (!(direccion instanceof Inet4Address)) continue;
+
+                    short prefijo = iadd.getNetworkPrefixLength();
+                    int mascara = getMascara(prefijo);
+                    int intHost = ip4toInt(grupoAddress);
+                    int intLocal = ip4toInt(direccion);
+
+                    if((intLocal & mascara) == (intHost & mascara)){
+                        return interfaz;
+                    }
+                }
+            }
+        }catch (Exception e) {
+            e.printStackTrace();
+        }
+        System.out.println("Direccion NO encontrada");
+        return null;
+    }
+
+    public static int getMascara (short pre){
+        return Integer.rotateLeft(0xFFFFFFFF, 32 - pre);
+    }
+
+    public static int ip4toInt(InetAddress direccion){
+        byte[] bs = direccion.getAddress();
+        return ((bs[0] & 0xFF) << 24)
+                | ((bs[1] & 0xFF) << 16)
+                | ((bs[2] & 0xFF) << 8 )
+                |  (bs[3] & 0xFF);
     }
 }

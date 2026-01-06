@@ -122,9 +122,11 @@ public class Servidor{
     public void controlarCarrera(InfoCarrera carrera) throws IOException, ClassNotFoundException {
 
         try(MulticastSocket ms = new MulticastSocket(carrera.puerto)){
-            ms.joinGroup(carrera.ipGrupo);
             UDPmulticast udp = new UDPmulticast(carrera.ipGrupo, carrera.puerto);
             udp.socket = ms;
+            SocketAddress sockaddr = new InetSocketAddress(carrera.ipGrupo, carrera.puerto);
+            NetworkInterface netIf = udp.encontrarDireccionLocal(carrera.ipGrupo);
+            ms.joinGroup(sockaddr,netIf);
             Thread.sleep(500);
             EventoCarrera salida = new EventoCarrera(idServidor,SALIDA);
             salida.setListaCamellos(carrera.camellos);
@@ -151,7 +153,7 @@ public class Servidor{
     }
 
 
-// Clase con informacion de las carreras generadas
+    // Clase con informacion de las carreras generadas
     private static class InfoCarrera {
         static final int MAX_CAMELLOS = 4;
         int idCarrera;

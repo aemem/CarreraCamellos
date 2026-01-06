@@ -1,0 +1,8 @@
+<component name="ArtifactManager">
+  <artifact type="jar" build-on-make="true" name="CarreraCamellosServidor:jar">
+    <output-path>$PROJECT_DIR$/out/artifacts/CarreraCamellosServidor_jar</output-path>
+    <root id="archive" name="CarreraCamellosServidor.jar">
+      <element id="module-output" name="CarreraCamellos" />
+    </root>
+  </artifact>
+</component>
