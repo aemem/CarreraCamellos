@@ -121,10 +121,13 @@ public class Servidor{
     //Enviar mensaje de SALIDA a la carrera y escuchar udp por si llega algun mensaje de META
     public void controlarCarrera(InfoCarrera carrera) throws IOException, ClassNotFoundException {
 
-        try(MulticastSocket ms = new MulticastSocket(carrera.puerto)){
-            ms.setReuseAddress(true);
-            NetworkInterface netIf = UDPmulticast.encontrarInterfaz(carrera.ipGrupo);
+        try(MulticastSocket ms = new MulticastSocket(null)){
 
+            NetworkInterface netIf = UDPmulticast.encontrarInterfaz(carrera.ipGrupo);
+            ms.setReuseAddress(true);
+            ms.bind(new InetSocketAddress(carrera.puerto));
+            ms.setNetworkInterface(netIf);
+            ms.setTimeToLive(1);
             UDPmulticast udp = new UDPmulticast(carrera.ipGrupo, carrera.puerto);
             udp.socket = ms;
             SocketAddress sockaddr = new InetSocketAddress(carrera.ipGrupo, carrera.puerto);
