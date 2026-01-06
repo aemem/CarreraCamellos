@@ -63,7 +63,7 @@ public class UDPmulticast{
     }
 
     // Busca la interfaz de red con la direccion multicast del grupo
-    public NetworkInterface encontrarDireccionLocal(InetAddress grupoAddress){
+    public static NetworkInterface encontrarDireccionLocal(InetAddress grupoAddress){
         try {
 
             Enumeration<NetworkInterface> interfaces = NetworkInterface.getNetworkInterfaces();
