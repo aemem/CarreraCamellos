@@ -14,9 +14,3 @@ public abstract class Mensaje implements Serializable {
     public Mensaje() {}
 }
 
-enum TipoMsg {
-    ASIGNAR_GRUPO,
-    ERROR,
-    EVENTO_CARRERA,
-    SOLICITAR_JUGAR
-}

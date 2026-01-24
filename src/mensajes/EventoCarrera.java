@@ -31,10 +31,3 @@ public class EventoCarrera extends Mensaje {
 
 }
 
-enum TipoEvento {
-    SALIDA,
-    PASO,
-    CAIDA,
-    META,
-    FIN
-}
