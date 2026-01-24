@@ -1,6 +1,7 @@
 package mensajes;
 
 import java.util.List;
+import static mensajes.TipoMsg.*;
 
 public class EventoCarrera extends Mensaje {
 
