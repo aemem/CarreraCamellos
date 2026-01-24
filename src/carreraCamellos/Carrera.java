@@ -2,6 +2,7 @@ package carreraCamellos;
 
 import mensajes.EventoCarrera;
 import mensajes.TipoEvento;
+import red.UDPmulticast;
 
 import javax.swing.*;
 import java.awt.*;
@@ -206,10 +207,12 @@ public class Carrera extends JFrame implements Runnable {
 
     @Override
     public void run() {
+        System.out.println("HILO INICIADO");
         try {
             while (!carreraTerminada) {
                 // escuchar en el multicast y actualizar la interfaz segun los mensajes recibidos
                 EventoCarrera ev = udp.recibir();
+                System.out.println("Mensaje recibido en carrera");
                 switch (ev.getTipoEvento()) {
                     case SALIDA:
                         SwingUtilities.invokeLater(() -> {
@@ -257,6 +260,7 @@ public class Carrera extends JFrame implements Runnable {
                 }
             }
         } catch (IOException | ClassNotFoundException e) {
+            System.out.println("Excepcion RUN");
             e.printStackTrace();
         } finally {
             if (udp != null && udp.socket != null) {

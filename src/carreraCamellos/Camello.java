@@ -2,6 +2,9 @@ package carreraCamellos;
 
 import mensajes.AsignarGrupo;
 import mensajes.SolicitarJugar;
+import red.TCPunicast;
+import red.UDPmulticast;
+import red.UtilsRed;
 
 import java.io.IOException;
 import java.net.*;
@@ -51,15 +54,17 @@ public class Camello {
 
     // Recibir asignación de grupo del servidor
     public void recibirAsignacion() throws IOException, ClassNotFoundException {
+        System.out.println("Esperando asignacion...");
         AsignarGrupo ag = (AsignarGrupo) tcp.recibir();
         System.out.println("Recibida asignación de grupo: " + ag.getIdCarrera() +
                 ", IP: " + ag.getIpMulti() + ", puerto: " + ag.getPuerto());
 
         InetAddress ip = InetAddress.getByName(ag.getIpMulti());
-        NetworkInterface netIf = UDPmulticast.encontrarInterfaz(ip);
         int puerto = ag.getPuerto();
+
+        NetworkInterface netIf = UtilsRed.encontrarInterfaz(ip);
+
         MulticastSocket ms = new MulticastSocket(null);
-        ms.setReuseAddress(true);
         ms.setReuseAddress(true);
         ms.bind(new InetSocketAddress(puerto));
         ms.setNetworkInterface(netIf);

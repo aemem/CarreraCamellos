@@ -30,3 +30,11 @@ public class EventoCarrera extends Mensaje {
     public List<Integer> getListaCamellos() { return listaCamellos; }
 
 }
+
+enum TipoEvento {
+    SALIDA,
+    PASO,
+    CAIDA,
+    META,
+    FIN
+}

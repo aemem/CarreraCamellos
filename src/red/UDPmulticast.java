@@ -1,4 +1,4 @@
-package carreraCamellos;
+package red;
 
 import mensajes.*;
 
@@ -62,38 +62,5 @@ public class UDPmulticast{
         return evento;
     }
 
-    public static NetworkInterface encontrarInterfaz(InetAddress grupo){
-        try {
 
-            Enumeration<NetworkInterface> interfaces = NetworkInterface.getNetworkInterfaces();
-
-            while(interfaces.hasMoreElements()){
-                NetworkInterface interfaz = interfaces.nextElement();
-
-                if (!interfaz.isUp() || interfaz.isLoopback()) continue;
-
-                for (InterfaceAddress iadd : interfaz.getInterfaceAddresses()){
-                    InetAddress direccion = iadd.getAddress();
-                    if (direccion instanceof Inet4Address) return interfaz;
-
-                }
-            }
-        }catch (Exception e) {
-            e.printStackTrace();
-        }
-        System.out.println("Direccion NO encontrada");
-        return null;
-    }
-
-    public static int getMascara (short pre){
-        return Integer.rotateLeft(0xFFFFFFFF, 32 - pre);
-    }
-
-    public static int ip4toInt(InetAddress direccion){
-        byte[] bs = direccion.getAddress();
-        return ((bs[0] & 0xFF) << 24)
-                | ((bs[1] & 0xFF) << 16)
-                | ((bs[2] & 0xFF) << 8 )
-                |  (bs[3] & 0xFF);
-    }
 }
