@@ -77,6 +77,4 @@ public class Camello {
         // Arrancar hilo para escuchar eventos multicast
         new Thread(carrera, "CarreraListener-" + idCamello).start();
     }
-
-
 }

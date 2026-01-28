@@ -89,7 +89,6 @@ public class Servidor {
             e.printStackTrace();
         }
     }
-
     // Buscar una carrera a la que añadir el camello
     public InfoCarrera asignarCamello(int idCamello) throws IOException, ClassNotFoundException {
 
